@@ -36,23 +36,17 @@ body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height
 .milestone{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:#f59e0b;text-align:center;margin-bottom:10px}
 .q-card{background:#1e293b;border-radius:16px;padding:18px;margin:8px 0;text-align:center}
 .q-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
-.svg-wrap{display:flex;justify-content:center;margin-bottom:10px}
-.svg-wrap svg{overflow:visible}
-.q-ask{font-size:17px;font-weight:800;color:#06b6d4;margin-top:8px}
-.pi-note{font-size:12px;color:#475569;margin-top:6px}
+.svg-wrap{display:flex;justify-content:center;margin-bottom:8px}
+.q-ask{font-size:17px;font-weight:800;color:#06b6d4;margin-top:6px}
+.pi-note{font-size:11px;color:#475569;margin-top:5px}
 .ans-area{background:#1e293b;border-radius:16px;padding:16px;margin-bottom:10px}
 .ans-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;text-align:center}
-.ans-format{font-size:13px;color:#64748b;text-align:center;margin-bottom:10px;font-style:italic}
-/* Two-part pi answer */
+.ans-format{font-size:12px;color:#64748b;text-align:center;margin-bottom:10px;font-style:italic}
 .pi-input{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
-.pi-input input{width:72px;height:52px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
+.pi-input input{width:70px;height:52px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
 .pi-input input:focus{border-color:#06b6d4}
-.pi-input .pi-sym{font-size:20px;font-weight:900;color:#06b6d4}
-.pi-input .plus-sym{font-size:20px;font-weight:700;color:#64748b}
-.pi-input .unit{font-size:14px;color:#64748b;font-weight:700}
-.single-input{display:flex;justify-content:center}
-.single-input input{width:130px;height:56px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:26px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
-.single-input input:focus{border-color:#06b6d4}
+.pi-input .pi-sym{font-size:17px;font-weight:900;color:#06b6d4;white-space:nowrap}
+.pi-input .unit{font-size:13px;color:#64748b;font-weight:700}
 .submit-btn{width:100%;background:#06b6d4;color:#0f172a;border:none;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;transition:all .2s}
 .submit-btn:active{transform:scale(.98);background:#0891b2}
 .feedback{border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:14px;font-weight:700;text-align:center;display:none}
@@ -84,7 +78,7 @@ body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height
   <div class="diff-label">Choose Difficulty</div>
   <div class="diff-grid">
     <div class="diff-btn selected" data-d="1" onclick="selDiff(1)"><span class="dn">Easy</span><span class="dd">Full circles only</span></div>
-    <div class="diff-btn" data-d="2" onclick="selDiff(2)"><span class="dn">Medium</span><span class="dd">Semicircles and quarter circles</span></div>
+    <div class="diff-btn" data-d="2" onclick="selDiff(2)"><span class="dn">Medium</span><span class="dd">Semicircles & quarter circles</span></div>
     <div class="diff-btn" data-d="3" onclick="selDiff(3)"><span class="dn">Hard</span><span class="dd">Composite figures</span></div>
   </div>
   <button class="start-btn" onclick="startGame()">Start Game →</button>
@@ -104,11 +98,11 @@ body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height
     <div class="q-label">Find the measurement</div>
     <div class="svg-wrap" id="svgWrap"></div>
     <div class="q-ask" id="qAsk"></div>
-    <div class="pi-note">Use π = 3.14. Give your answer in cm² or cm.</div>
+    <div class="pi-note">Leave your answer in terms of π — enter the number before π.</div>
   </div>
   <div class="ans-area">
     <div class="ans-label">Your Answer</div>
-    <div class="ans-format" id="ansFormat">e.g. for 9π enter 9, for 9π + 6 enter 9 and 6</div>
+    <div class="ans-format" id="ansFormat"></div>
     <div id="ansInput"></div>
     <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">Check Answer</button>
   </div>
@@ -130,13 +124,11 @@ body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height
 <script>
 const BKEY='p6_6_15_best';
 let diff=1,score=0,streak=0,qNum=0,answered=false;
-// Answer stored as: piCoeff (×π part) and straight (non-π part)
-let ansPiCoeff=0,ansStraight=0,ansType=''; // ansType: 'area','circ','perimSemi','perimQ'
+let ansPiCoeff=0,ansStraight=0;
 
 function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function loadBest(){const b=localStorage.getItem(BKEY);document.getElementById('bestDisplay').textContent=b?b+' pts':'—'}
 function selDiff(d){diff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.d===d))}
-
 function startGame(){
   score=0;streak=0;qNum=0;
   document.getElementById('scoreDisplay').textContent='0';
@@ -148,37 +140,85 @@ function startGame(){
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 
-// SVG generators
-function circleSVG(r,label){
-  const cx=100,cy=100,px=Math.min(r*14,90);
-  return`<svg width="200" height="200" viewBox="0 0 200 200">
-    <circle cx="${cx}" cy="${cy}" r="${px}" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2.5"/>
-    <line x1="${cx}" y1="${cy}" x2="${cx+px}" y2="${cy}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3"/>
-    <text x="${cx+px/2}" y="${cy-8}" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="800">${label}</text>
+/* =========================================================
+   SVG GENERATORS
+   All shapes use a fixed visual size — diagrams look
+   consistent across all radius values.
+   ========================================================= */
+
+// Full circle: centred at (120,96), visual r = 72
+function circleSVG(r){
+  const cx=120,cy=96,vr=72;
+  return`<svg width="240" height="182" viewBox="0 0 240 182">
+    <circle cx="${cx}" cy="${cy}" r="${vr}" fill="rgba(6,182,212,.13)" stroke="#06b6d4" stroke-width="2.5"/>
+    <circle cx="${cx}" cy="${cy}" r="3.5" fill="#06b6d4"/>
+    <line x1="${cx}" y1="${cy}" x2="${cx+vr}" y2="${cy}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="${cx+vr/2}" y="${cy-13}" text-anchor="middle" font-family="Nunito" font-size="14" font-weight="800" fill="#f59e0b">r = ${r} cm</text>
   </svg>`;
 }
 
-function semicircleSVG(r,label){
-  const cx=100,cy=130,px=Math.min(r*14,80);
-  return`<svg width="200" height="170" viewBox="0 0 200 170">
-    <path d="M ${cx-px} ${cy} A ${px} ${px} 0 0 1 ${cx+px} ${cy} Z" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2.5"/>
-    <line x1="${cx-px}" y1="${cy}" x2="${cx+px}" y2="${cy}" stroke="#94a3b8" stroke-width="2"/>
-    <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-px}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3"/>
-    <text x="${cx+8}" y="${cy-px/2}" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="800">${label}</text>
+// Semicircle: flat diameter along bottom, arc sweeps UPWARD.
+// sweep-flag=0 (counterclockwise in SVG) travels upward from left to right. ✓
+function semicircleSVG(r){
+  const cx=120,baseY=140,vr=90;
+  const lx=cx-vr,rx=cx+vr; // (30,140) and (210,140)
+  return`<svg width="240" height="172" viewBox="0 0 240 172">
+    <path d="M ${lx} ${baseY} A ${vr} ${vr} 0 0 0 ${rx} ${baseY} Z"
+          fill="rgba(6,182,212,.13)" stroke="#06b6d4" stroke-width="2.5"/>
+    <line x1="${lx}" y1="${baseY}" x2="${rx}" y2="${baseY}" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="${cx}" cy="${baseY}" r="3.5" fill="#94a3b8"/>
+    <line x1="${cx}" y1="${baseY}" x2="${cx}" y2="${baseY-vr}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="${cx+14}" y="${baseY-vr/2}" dominant-baseline="middle" font-family="Nunito" font-size="14" font-weight="800" fill="#f59e0b">r = ${r} cm</text>
   </svg>`;
 }
 
-function quarterCircleSVG(r,label){
-  const ox=40,oy=150,px=Math.min(r*15,110);
-  return`<svg width="200" height="200" viewBox="0 0 200 200">
-    <path d="M ${ox} ${oy} L ${ox+px} ${oy} A ${px} ${px} 0 0 0 ${ox} ${oy-px} Z" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2.5"/>
-    <line x1="${ox}" y1="${oy}" x2="${ox+px}" y2="${oy}" stroke="#94a3b8" stroke-width="2"/>
-    <line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy-px}" stroke="#94a3b8" stroke-width="2"/>
-    <line x1="${ox}" y1="${oy}" x2="${ox+px}" y2="${oy-px}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3" opacity="0"/>
-    <text x="${ox+px/2+10}" y="${oy+18}" fill="#f59e0b" font-family="Nunito" font-size="13" font-weight="800">${label}</text>
+// Quarter circle: corner at bottom-left (32,162), visual r = 120.
+// Arc from (152,162) to (32,42): sweep-flag=0 travels counterclockwise = upward. ✓
+function quarterCircleSVG(r){
+  const ox=32,oy=162,vr=120;
+  return`<svg width="210" height="200" viewBox="0 0 210 200">
+    <path d="M ${ox} ${oy} L ${ox+vr} ${oy} A ${vr} ${vr} 0 0 0 ${ox} ${oy-vr} Z"
+          fill="rgba(6,182,212,.13)" stroke="#06b6d4" stroke-width="2.5"/>
+    <polyline points="${ox+14},${oy} ${ox+14},${oy-14} ${ox},${oy-14}"
+              fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    <circle cx="${ox}" cy="${oy}" r="3" fill="#94a3b8"/>
+    <text x="${ox+vr/2}" y="${oy+18}" text-anchor="middle" font-family="Nunito" font-size="14" font-weight="800" fill="#f59e0b">r = ${r} cm</text>
   </svg>`;
 }
 
+// Hard composite 1: square (100×100) with semicircle on top.
+// The semicircle arc goes from left-top to right-top sweeping upward (sweep=0). ✓
+function squareSemiSVG(side){
+  const sqL=60,sqT=84,sqW=100,sqH=100;
+  const sqR=sqL+sqW,sqB=sqT+sqH;
+  const semVr=sqW/2,semCx=sqL+sqW/2;
+  return`<svg width="220" height="215" viewBox="0 0 220 215">
+    <rect x="${sqL}" y="${sqT}" width="${sqW}" height="${sqH}" fill="rgba(6,182,212,.10)" stroke="#06b6d4" stroke-width="2.5"/>
+    <path d="M ${sqL} ${sqT} A ${semVr} ${semVr} 0 0 0 ${sqR} ${sqT}" fill="rgba(6,182,212,.18)" stroke="#06b6d4" stroke-width="2.5"/>
+    <text x="${sqL-14}" y="${sqT+sqH/2}" text-anchor="end" dominant-baseline="middle" font-family="Nunito" font-size="14" font-weight="800" fill="#f59e0b">${side} cm</text>
+    <text x="${sqL+sqW+10}" y="${sqT+sqH/2}" dominant-baseline="middle" font-family="Nunito" font-size="14" font-weight="800" fill="#f59e0b">${side} cm</text>
+    <text x="${semCx}" y="${sqT-semVr/2-4}" text-anchor="middle" dominant-baseline="middle" font-family="Nunito" font-size="12" font-weight="700" fill="#94a3b8">r = ${side/2} cm</text>
+  </svg>`;
+}
+
+// Hard composite 2: rectangle with quarter circle at top-left corner.
+// sweep-flag=1 (clockwise in SVG) from the bottom arc point to the right arc point
+// traces the quarter circle correctly inside the corner. ✓
+function rectQuarterSVG(rw,rh,r3){
+  const rx=40,ry=30,vr=r3*16;
+  return`<svg width="230" height="175" viewBox="0 0 230 175">
+    <rect x="${rx}" y="${ry}" width="${rw*12}" height="${rh*12}" fill="rgba(6,182,212,.10)" stroke="#06b6d4" stroke-width="2.5"/>
+    <path d="M ${rx} ${ry+vr} A ${vr} ${vr} 0 0 1 ${rx+vr} ${ry} L ${rx} ${ry} Z"
+          fill="rgba(245,158,11,.18)" stroke="#f59e0b" stroke-width="2"/>
+    <text x="${rx+rw*6}" y="${ry+rh*12+16}" text-anchor="middle" font-family="Nunito" font-size="13" font-weight="800" fill="#94a3b8">${rw} cm</text>
+    <text x="${rx+rw*12+14}" y="${ry+rh*6}" dominant-baseline="middle" font-family="Nunito" font-size="13" font-weight="800" fill="#94a3b8">${rh} cm</text>
+    <text x="${rx+vr/2}" y="${ry-12}" text-anchor="middle" font-family="Nunito" font-size="13" font-weight="800" fill="#f59e0b">r = ${r3} cm</text>
+  </svg>`;
+}
+
+/* =========================================================
+   QUESTION GENERATOR
+   ========================================================= */
 function genQ(){
   answered=false;
   document.getElementById('feedback').style.display='none';
@@ -188,101 +228,76 @@ function genQ(){
   document.getElementById('progText').textContent=`Q ${qNum} of 10`;
   document.getElementById('progFill').style.width=`${(qNum-1)*10}%`;
 
-  const radii=[3,4,5,6,7,10];
+  const radii=[3,4,5,6,7];
   const r=radii[randInt(0,radii.length-1)];
 
   if(diff===1){
-    // Full circles: area or circumference
     const findArea=Math.random()<0.5;
+    document.getElementById('svgWrap').innerHTML=circleSVG(r);
     if(findArea){
-      // Area = πr², enter r²
-      ansPiCoeff=r*r;ansStraight=0;ansType='area';
-      document.getElementById('svgWrap').innerHTML=circleSVG(r,`r = ${r} cm`);
-      document.getElementById('qAsk').textContent=`Find the area of the circle.`;
-      document.getElementById('ansFormat').textContent=`Area = ? × π cm². Enter the number before π.`;
-      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">π cm²</span></div>`;
+      ansPiCoeff=r*r;ansStraight=0;
+      document.getElementById('qAsk').textContent='Find the area of the circle.';
+      document.getElementById('ansFormat').textContent='Area = ? × π cm²';
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">&times; π cm²</span></div>`;
     } else {
-      // Circumference = 2πr, enter 2r
-      ansPiCoeff=2*r;ansStraight=0;ansType='circ';
-      document.getElementById('svgWrap').innerHTML=circleSVG(r,`r = ${r} cm`);
-      document.getElementById('qAsk').textContent=`Find the circumference of the circle.`;
-      document.getElementById('ansFormat').textContent=`Circumference = ? × π cm. Enter the number before π.`;
-      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">π cm</span></div>`;
+      ansPiCoeff=2*r;ansStraight=0;
+      document.getElementById('qAsk').textContent='Find the circumference of the circle.';
+      document.getElementById('ansFormat').textContent='Circumference = ? × π cm';
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">&times; π cm</span></div>`;
     }
+
   } else if(diff===2){
-    // Semicircles and quarter circles
-    const shape=Math.random()<0.5?'semi':'quarter';
+    const isSemi=Math.random()<0.5;
     const findArea=Math.random()<0.5;
-    if(shape==='semi'){
+    if(isSemi){
+      document.getElementById('svgWrap').innerHTML=semicircleSVG(r);
       if(findArea){
-        // Area = πr²/2, enter r²/2
-        ansPiCoeff=r*r;ansStraight=0;ansType='area_semi';
-        document.getElementById('svgWrap').innerHTML=semicircleSVG(r,`r = ${r} cm`);
-        document.getElementById('qAsk').textContent=`Find the area of the semicircle.`;
-        document.getElementById('ansFormat').textContent=`Area = ?/2 × π cm². Enter the number before π/2.`;
-        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/2 × π cm²</span></div>`;
+        ansPiCoeff=r*r;ansStraight=0;
+        document.getElementById('qAsk').textContent='Find the area of the semicircle.';
+        document.getElementById('ansFormat').textContent='Area = ? ÷ 2 × π cm²  (enter the r² value)';
+        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">÷ 2 × π cm²</span></div>`;
       } else {
-        // Perimeter = πr + 2r = r(π + 2)
-        ansPiCoeff=r;ansStraight=2*r;ansType='perim_semi';
-        document.getElementById('svgWrap').innerHTML=semicircleSVG(r,`r = ${r} cm`);
-        document.getElementById('qAsk').textContent=`Find the perimeter of the semicircle.`;
-        document.getElementById('ansFormat').textContent=`Perimeter = ?π + ? cm. Enter the π part then the straight part.`;
+        ansPiCoeff=r;ansStraight=2*r;
+        document.getElementById('qAsk').textContent='Find the perimeter of the semicircle.';
+        document.getElementById('ansFormat').textContent='Perimeter = ?π + ? cm';
         document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm</span></div>`;
       }
     } else {
+      document.getElementById('svgWrap').innerHTML=quarterCircleSVG(r);
       if(findArea){
-        // Area = πr²/4, enter r²
-        ansPiCoeff=r*r;ansStraight=0;ansType='area_quarter';
-        document.getElementById('svgWrap').innerHTML=quarterCircleSVG(r,`r = ${r} cm`);
-        document.getElementById('qAsk').textContent=`Find the area of the quarter circle.`;
-        document.getElementById('ansFormat').textContent=`Area = ?/4 × π cm². Enter the number before π/4.`;
-        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/4 × π cm²</span></div>`;
+        ansPiCoeff=r*r;ansStraight=0;
+        document.getElementById('qAsk').textContent='Find the area of the quarter circle.';
+        document.getElementById('ansFormat').textContent='Area = ? ÷ 4 × π cm²  (enter the r² value)';
+        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">÷ 4 × π cm²</span></div>`;
       } else {
-        // Perimeter = (πr/2) + 2r
-        ansPiCoeff=r;ansStraight=2*r;ansType='perim_quarter';
-        document.getElementById('svgWrap').innerHTML=quarterCircleSVG(r,`r = ${r} cm`);
-        document.getElementById('qAsk').textContent=`Find the perimeter of the quarter circle.`;
-        document.getElementById('ansFormat').textContent=`Perimeter = ?/2 × π + ? cm.`;
-        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/2 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm</span></div>`;
+        ansPiCoeff=r;ansStraight=2*r;
+        document.getElementById('qAsk').textContent='Find the perimeter of the quarter circle.';
+        document.getElementById('ansFormat').textContent='Perimeter = ? ÷ 2 × π + ? cm';
+        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">÷ 2 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm</span></div>`;
       }
     }
+
   } else {
-    // Hard: composite — square + semicircle or rectangle + quarter circle
-    const sideR=[4,5,6,7,8,10];
-    const side=sideR[randInt(0,sideR.length-1)];
+    // Hard: composite figures. Use even sides so r2 = side/2 is whole.
+    const evenSides=[4,6,8,10];
+    const side=evenSides[randInt(0,evenSides.length-1)];
     const r2=side/2;
-    const findArea=Math.random()<0.5;
-    const shape=Math.random()<0.5?'sq_semi':'rect_q';
-    if(shape==='sq_semi'){
-      // Square with semicircle on top
-      // Area = side² + π(side/2)²/2 = side² + π·side²/8
-      const squareArea=side*side;
-      const piPart=side*side; // in numerator of /8 term — too complex; just use r and keep coefficient
-      // Simplify: Area = side² + π·r²/2 where r = side/2
-      // = side² + π(side/2)²/2
-      ansPiCoeff=r2*r2;ansStraight=squareArea;ansType='composite_sq_semi';
-      document.getElementById('svgWrap').innerHTML=`<svg width="200" height="200" viewBox="0 0 200 200">
-        <rect x="60" y="80" width="80" height="80" fill="rgba(6,182,212,.1)" stroke="#06b6d4" stroke-width="2"/>
-        <path d="M 60 80 A 40 40 0 0 1 140 80" fill="rgba(6,182,212,.15)" stroke="#06b6d4" stroke-width="2"/>
-        <text x="95" y="125" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="13" font-weight="800">${side} cm</text>
-      </svg>`;
-      document.getElementById('qAsk').textContent=`Find the total area of the figure.`;
-      document.getElementById('ansFormat').textContent=`Area = ?/2 × π + ? cm². Enter π-part then square part.`;
-      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/2 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm²</span></div>`;
+    const isSquareSemi=Math.random()<0.5;
+    if(isSquareSemi){
+      ansPiCoeff=r2*r2;ansStraight=side*side;
+      document.getElementById('svgWrap').innerHTML=squareSemiSVG(side);
+      document.getElementById('qAsk').textContent='Find the total area of this figure.';
+      document.getElementById('ansFormat').textContent='Area = ? ÷ 2 × π + ? cm²  (π-part first, then square area)';
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">÷ 2 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm²</span></div>`;
     } else {
-      // Rectangle + quarter circle at corner
-      const w=side,h=side;
-      const r3=randInt(2,4);
-      ansPiCoeff=r3*r3;ansStraight=w*h;ansType='composite_rect_q';
-      document.getElementById('svgWrap').innerHTML=`<svg width="200" height="180" viewBox="0 0 200 180">
-        <rect x="40" y="50" width="100" height="80" fill="rgba(6,182,212,.1)" stroke="#06b6d4" stroke-width="2"/>
-        <path d="M 40 50 A ${r3*12} ${r3*12} 0 0 1 ${40+r3*12} 50 L ${40+r3*12} ${50-r3*12} A ${r3*12} ${r3*12} 0 0 0 40 50 Z" fill="rgba(245,158,11,.15)" stroke="#f59e0b" stroke-width="2"/>
-        <text x="86" y="100" text-anchor="middle" fill="#06b6d4" font-family="Nunito" font-size="12" font-weight="800">${w}×${h}</text>
-        <text x="${40+r3*6}" y="${50+18}" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="11" font-weight="800">r=${r3}</text>
-      </svg>`;
-      document.getElementById('qAsk').textContent=`Find the total area of the figure.`;
-      document.getElementById('ansFormat').textContent=`Area = ?/4 × π + ? cm². Enter π-part (r²) then rectangle area.`;
-      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/4 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm²</span></div>`;
+      const r3=[2,3,4][randInt(0,2)];
+      const rectW=[6,8,10][randInt(0,2)];
+      const rectH=[5,6,7][randInt(0,2)];
+      ansPiCoeff=r3*r3;ansStraight=rectW*rectH;
+      document.getElementById('svgWrap').innerHTML=rectQuarterSVG(rectW,rectH,r3);
+      document.getElementById('qAsk').textContent='Find the total area of this figure.';
+      document.getElementById('ansFormat').textContent='Area = ? ÷ 4 × π + ? cm²  (π-part first, then rectangle area)';
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">÷ 4 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm²</span></div>`;
     }
   }
   setTimeout(()=>document.getElementById('piIn').focus(),100);
@@ -292,15 +307,14 @@ function checkAnswer(){
   if(answered)return;
   const pc=parseInt(document.getElementById('piIn').value);
   const stEl=document.getElementById('stIn');
-  const st=stEl?parseInt(stEl.value)||0:0;
+  const st=stEl?(parseInt(stEl.value)||0):0;
   if(isNaN(pc)||pc<0){showFB('Enter the coefficient for the π part.',false);return}
-  const correct=pc===ansPiCoeff&&st===ansStraight;
+  const correct=(pc===ansPiCoeff)&&(st===ansStraight);
   answered=true;
   document.getElementById('submitBtn').style.display='none';
   document.getElementById('nextBtn').style.display='block';
   if(correct){
-    streak++;
-    let pts=diff===1?10:diff===2?15:20;let bonus='';
+    streak++;let pts=diff===1?10:diff===2?15:20;let bonus='';
     if(streak===3){pts+=5;bonus='🔥 3 in a row! +5 bonus'}
     else if(streak===5){pts+=10;bonus='🔥 5 in a row! +10 bonus'}
     else if(streak>5&&streak%5===0){pts+=15;bonus=`🔥 ${streak} streak! +15 bonus`}
@@ -311,8 +325,8 @@ function checkAnswer(){
     showFB(`${msgs[randInt(0,msgs.length-1)]}  +${pts} pts`,true);
   } else {
     streak=0;document.getElementById('streakDisplay').textContent='0';
-    const corrStr=ansStraight?`π-coeff = ${ansPiCoeff}, straight part = ${ansStraight}`:`π-coeff = ${ansPiCoeff}`;
-    showFB(`Not quite — ${corrStr}`,false);
+    const s=ansStraight?`π-part = ${ansPiCoeff}, straight part = ${ansStraight}`:`π-part = ${ansPiCoeff}`;
+    showFB(`Not quite — ${s}`,false);
   }
 }
 

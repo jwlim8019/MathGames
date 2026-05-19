@@ -84,11 +84,11 @@ body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height
   <div class="topic-grid">
     <div class="topic-btn selected" data-t="volume" onclick="selTopic('volume')">
       <span class="tn">Volume Inverse</span>
-      <span class="td">Find missing dimension of a cube or cuboid</span>
+      <span class="td">Find the missing dimension of a cube or cuboid</span>
     </div>
     <div class="topic-btn" data-t="angles" onclick="selTopic('angles')">
       <span class="tn">Unknown Angles</span>
-      <span class="td">Composite figures — straight lines, triangles and points</span>
+      <span class="td">Straight lines, triangles, vertically opposite and angles at a point</span>
     </div>
   </div>
   <div class="diff-label">Choose Difficulty</div>
@@ -148,7 +148,6 @@ function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function loadBest(){const b=localStorage.getItem(BKEY);document.getElementById('bestDisplay').textContent=b?b+' pts':'—'}
 function selDiff(d){diff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.d===d))}
 function selTopic(t){topic=t;document.querySelectorAll('.topic-btn').forEach(b=>b.classList.toggle('selected',b.dataset.t===t))}
-
 function startGame(){
   score=0;streak=0;qNum=0;
   document.getElementById('scoreDisplay').textContent='0';
@@ -160,48 +159,152 @@ function startGame(){
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 
-function cuboidSVG(l,w,h,missingLabel){
-  const ox=60,oy=130,scale=12;
-  const lx=l*scale,ly=w*scale*0.5,lz=h*scale;
-  return`<svg width="200" height="170" viewBox="0 0 200 170">
-    <polygon points="${ox},${oy} ${ox+lx},${oy} ${ox+lx},${oy-lz} ${ox},${oy-lz}" fill="rgba(16,185,129,.1)" stroke="#10b981" stroke-width="2"/>
-    <polygon points="${ox+lx},${oy} ${ox+lx+ly},${oy-ly} ${ox+lx+ly},${oy-lz-ly} ${ox+lx},${oy-lz}" fill="rgba(16,185,129,.08)" stroke="#10b981" stroke-width="2"/>
-    <polygon points="${ox},${oy-lz} ${ox+lx},${oy-lz} ${ox+lx+ly},${oy-lz-ly} ${ox+ly},${oy-lz-ly}" fill="rgba(16,185,129,.12)" stroke="#10b981" stroke-width="2"/>
-    <text x="${ox+lx/2}" y="${oy+16}" text-anchor="middle" fill="${missingLabel==='l'?'#f59e0b':'#94a3b8'}" font-family="Nunito" font-size="12" font-weight="800">${missingLabel==='l'?'?':l+' cm'}</text>
-    <text x="${ox+lx+ly/2+8}" y="${oy-ly/2+4}" fill="${missingLabel==='w'?'#f59e0b':'#94a3b8'}" font-family="Nunito" font-size="12" font-weight="800">${missingLabel==='w'?'?':w+' cm'}</text>
-    <text x="${ox-8}" y="${oy-lz/2}" text-anchor="end" fill="${missingLabel==='h'?'#f59e0b':'#94a3b8'}" font-family="Nunito" font-size="12" font-weight="800">${missingLabel==='h'?'?':h+' cm'}</text>
+/* =========================================================
+   CUBOID SVG — dynamically scaled to always fit the canvas
+   ========================================================= */
+function cuboidSVG(l,w,h,miss){
+  // Canvas 250×185. Padding 28 each side + 18 bottom for labels.
+  // Isometric: l-axis = (+cos30,+sin30)*s, w-axis = (-cos30,+sin30)*s, h-axis = (0,-1)*s
+  const VW=250,VH=185,padH=28,padB=22,padT=24;
+  const cos30=0.866,sin30=0.5;
+  const usableW=VW-2*padH;
+  const usableH=VH-padT-padB;
+  // Bounding box extents (in units): width=(l+w)*cos30, height=h+(l+w)*sin30
+  const rawS=Math.min(usableW/((l+w)*cos30), usableH/(h+(l+w)*sin30));
+  const s=Math.max(Math.min(rawS,20),4); // clamp between 4 and 20 px/unit
+
+  // Origin = front-bottom-left corner
+  const ox=padH+w*cos30*s;
+  const oy=padT+h*s; // top of front face is oy, bottom edge is oy+(l+w)*sin30*s
+
+  // 8 corners (only 7 needed for visible faces):
+  // A=front-bottom-left, B=front-bottom-right, C=front-top-right, D=front-top-left
+  // E=back-bottom-left(hidden), F=back-bottom-right, G=back-top-right, H=back-top-left
+  const A=[ox,           oy+(l+w)*sin30*s]; // but let me recalculate...
+  // Actually recalculate properly:
+  // front-bottom-left = origin after offset
+  // Let's place origin so the entire figure is centred vertically
+
+  // Re-derive: front face bottom-left at (ox, oy2)
+  const oy2=VH-padB-(l+w)*sin30*s; // bottom-most y of figure = oy2+(l+w)*sin30*s = VH-padB
+  const A2=[ox,                        oy2];
+  const B2=[ox+l*cos30*s,              oy2+l*sin30*s];
+  const C2=[ox+l*cos30*s,              oy2+l*sin30*s-h*s];
+  const D2=[ox,                        oy2-h*s];
+  const F2=[ox+l*cos30*s-w*cos30*s,    oy2+l*sin30*s+w*sin30*s];
+  const G2=[ox+l*cos30*s-w*cos30*s,    oy2+l*sin30*s+w*sin30*s-h*s];
+  const H2=[ox-w*cos30*s,              oy2+w*sin30*s-h*s];
+
+  const p=([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`;
+  const lc=(which)=>which===miss?'#f59e0b':'#94a3b8';
+  const lt=(val,which)=>which===miss?'?':`${val} cm`;
+
+  // Label anchors
+  const lLx=((A2[0]+B2[0])/2).toFixed(1);
+  const lLy=(Math.max(A2[1],B2[1])+14).toFixed(1);
+  const hLx=(A2[0]-10).toFixed(1);
+  const hLy=((A2[1]+D2[1])/2).toFixed(1);
+  const wLx=(Math.max(B2[0],F2[0])+8).toFixed(1);
+  const wLy=((B2[1]+F2[1])/2).toFixed(1);
+
+  return`<svg width="${VW}" height="${VH}" viewBox="0 0 ${VW} ${VH}">
+    <polygon points="${p(A2)} ${p(B2)} ${p(C2)} ${p(D2)}" fill="rgba(16,185,129,.13)" stroke="#10b981" stroke-width="2"/>
+    <polygon points="${p(B2)} ${p(F2)} ${p(G2)} ${p(C2)}" fill="rgba(16,185,129,.07)" stroke="#10b981" stroke-width="2"/>
+    <polygon points="${p(D2)} ${p(C2)} ${p(G2)} ${p(H2)}" fill="rgba(16,185,129,.18)" stroke="#10b981" stroke-width="2"/>
+    <text x="${lLx}" y="${lLy}" text-anchor="middle" fill="${lc('l')}" font-family="Nunito" font-size="12" font-weight="800">${lt(l,'l')}</text>
+    <text x="${hLx}" y="${hLy}" text-anchor="end" dominant-baseline="middle" fill="${lc('h')}" font-family="Nunito" font-size="12" font-weight="800">${lt(h,'h')}</text>
+    <text x="${wLx}" y="${wLy}" dominant-baseline="middle" fill="${lc('w')}" font-family="Nunito" font-size="12" font-weight="800">${lt(w,'w')}</text>
   </svg>`;
 }
 
-function straightLineSVG(known1,known2){
-  return`<svg width="240" height="120" viewBox="0 0 240 120">
-    <line x1="20" y1="80" x2="220" y2="80" stroke="#94a3b8" stroke-width="3"/>
-    <line x1="80" y1="80" x2="60" y2="20" stroke="#06b6d4" stroke-width="2.5"/>
-    <line x1="130" y1="80" x2="155" y2="20" stroke="#06b6d4" stroke-width="2.5"/>
-    <text x="72" y="65" fill="#94a3b8" font-family="Nunito" font-size="13" font-weight="800">${known1}°</text>
-    <text x="110" y="65" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="900">x°</text>
-    <text x="145" y="65" fill="#94a3b8" font-family="Nunito" font-size="13" font-weight="800">${known2}°</text>
+/* =========================================================
+   ANGLE SVG GENERATORS
+   All use generous viewBox sizes with labels placed clearly
+   inside angle sectors or well within the canvas boundary.
+   ========================================================= */
+
+// Two arms from ONE point on a baseline → three adjacent angles summing to 180°.
+// k1 = left sector, x = middle (unknown), k2 = right sector.
+function straightLineSVG(k1,k2){
+  // Canvas 280×165. Baseline at y=125. Point O at (140,125).
+  // Left arm goes upper-left, right arm goes upper-right.
+  // Arm directions are fixed visually; angle values are labels only.
+  const ox=140,oy=125,armLen=85;
+  const lx=ox-armLen*0.6,ly=oy-armLen; // left arm tip
+  const rx=ox+armLen*0.6,ry=oy-armLen; // right arm tip
+  // Label positions inside each sector:
+  // Left sector (between left baseline and left arm): far left, mid-height
+  // Middle sector (between two arms): just above point, centred
+  // Right sector (between right arm and right baseline): far right, mid-height
+  return`<svg width="280" height="165" viewBox="0 0 280 165">
+    <line x1="10" y1="${oy}" x2="270" y2="${oy}" stroke="#94a3b8" stroke-width="2.5"/>
+    <line x1="${ox}" y1="${oy}" x2="${lx}" y2="${ly}" stroke="#06b6d4" stroke-width="2.5"/>
+    <line x1="${ox}" y1="${oy}" x2="${rx}" y2="${ry}" stroke="#06b6d4" stroke-width="2.5"/>
+    <circle cx="${ox}" cy="${oy}" r="3.5" fill="#94a3b8"/>
+    <text x="62" y="${oy-28}" text-anchor="middle" fill="#94a3b8" font-family="Nunito" font-size="15" font-weight="800">${k1}°</text>
+    <text x="${ox}" y="${oy-58}" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="16" font-weight="900">x°</text>
+    <text x="218" y="${oy-28}" text-anchor="middle" fill="#94a3b8" font-family="Nunito" font-size="15" font-weight="800">${k2}°</text>
   </svg>`;
 }
 
+// Triangle: apex at top, two base angles labeled, apex angle = x (unknown).
+// Labels sit INSIDE the triangle near each vertex.
 function triangleSVG(a,b){
-  return`<svg width="220" height="160" viewBox="0 0 220 160">
-    <polygon points="110,20 30,140 190,140" fill="rgba(16,185,129,.1)" stroke="#10b981" stroke-width="2.5"/>
-    <text x="100" y="42" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="900">x°</text>
-    <text x="28" y="160" fill="#94a3b8" font-family="Nunito" font-size="13" font-weight="800">${a}°</text>
-    <text x="178" y="160" fill="#94a3b8" font-family="Nunito" font-size="13" font-weight="800">${b}°</text>
+  const ax=130,ay=28, bx=28,by=162, cx=232,cy=162;
+  // Inside label offsets: apex slightly below, base vertices slightly inward
+  return`<svg width="260" height="195" viewBox="0 0 260 195">
+    <polygon points="${ax},${ay} ${bx},${by} ${cx},${cy}" fill="rgba(16,185,129,.10)" stroke="#10b981" stroke-width="2.5"/>
+    <text x="${ax}" y="${ay+30}" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="16" font-weight="900">x°</text>
+    <text x="${bx+28}" y="${by-12}" text-anchor="middle" fill="#94a3b8" font-family="Nunito" font-size="15" font-weight="800">${a}°</text>
+    <text x="${cx-28}" y="${cy-12}" text-anchor="middle" fill="#94a3b8" font-family="Nunito" font-size="15" font-weight="800">${b}°</text>
   </svg>`;
 }
 
+// Two lines crossing: vertically opposite angles.
 function vertOppSVG(known){
-  return`<svg width="200" height="160" viewBox="0 0 200 160">
-    <line x1="20" y1="20" x2="180" y2="140" stroke="#06b6d4" stroke-width="2.5"/>
-    <line x1="180" y1="20" x2="20" y2="140" stroke="#06b6d4" stroke-width="2.5"/>
-    <text x="88" y="28" text-anchor="middle" fill="#94a3b8" font-family="Nunito" font-size="13" font-weight="800">${known}°</text>
-    <text x="88" y="148" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="900">x°</text>
+  // Canvas 240×200. Centre at (120,100).
+  // Lines cross at centre. Labels sit in opposite quadrants.
+  return`<svg width="240" height="200" viewBox="0 0 240 200">
+    <line x1="20"  y1="30"  x2="220" y2="170" stroke="#06b6d4" stroke-width="2.5"/>
+    <line x1="220" y1="30"  x2="20"  y2="170" stroke="#06b6d4" stroke-width="2.5"/>
+    <circle cx="120" cy="100" r="3.5" fill="#94a3b8"/>
+    <text x="120" y="48"  text-anchor="middle" fill="#94a3b8" font-family="Nunito" font-size="15" font-weight="800">${known}°</text>
+    <text x="120" y="162" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="16" font-weight="900">x°</text>
+    <text x="28"  y="108" text-anchor="middle" dominant-baseline="middle" fill="#475569" font-family="Nunito" font-size="12" font-weight="700">?</text>
+    <text x="212" y="108" text-anchor="middle" dominant-baseline="middle" fill="#475569" font-family="Nunito" font-size="12" font-weight="700">?</text>
   </svg>`;
 }
 
+// Four arms from one point → four angles at a point summing to 360°.
+function atPointSVG(a,b,c){
+  // Three known angles labeled, x is the fourth unknown sector.
+  // Arms at fixed visual angles; labels placed in each sector.
+  const cx=130,cy=105,len=90;
+  // Four arm tips (fixed visual directions):
+  const tips=[[cx+len*0.6,cy-len],[cx-len*0.6,cy-len],[cx-len,cy+len*0.5],[cx+len,cy+len*0.5]];
+  // Sector label midpoints (midway between consecutive arm directions):
+  const labels=[
+    {x:cx+28,y:cy-65, v:a+'°',  col:'#94a3b8'},
+    {x:cx-28,y:cy-65, v:b+'°',  col:'#94a3b8'},
+    {x:cx-70,y:cy+40, v:c+'°',  col:'#94a3b8'},
+    {x:cx+70,y:cy+40, v:'x°',   col:'#f59e0b'},
+  ];
+  const lines=tips.map(([tx,ty])=>
+    `<line x1="${cx}" y1="${cy}" x2="${tx}" y2="${ty}" stroke="#06b6d4" stroke-width="2.5"/>`
+  ).join('');
+  const texts=labels.map(lb=>
+    `<text x="${lb.x}" y="${lb.y}" text-anchor="middle" dominant-baseline="middle" fill="${lb.col}" font-family="Nunito" font-size="${lb.v==='x°'?16:15}" font-weight="${lb.v==='x°'?900:800}">${lb.v}</text>`
+  ).join('');
+  return`<svg width="260" height="210" viewBox="0 0 260 210">
+    ${lines}
+    <circle cx="${cx}" cy="${cy}" r="3.5" fill="#94a3b8"/>
+    ${texts}
+  </svg>`;
+}
+
+/* =========================================================
+   QUESTION GENERATOR
+   ========================================================= */
 function genQ(){
   answered=false;
   document.getElementById('feedback').style.display='none';
@@ -215,37 +318,32 @@ function genQ(){
 
   if(topic==='volume'){
     document.getElementById('topicTag').textContent='Volume';
-    const dimRanges=diff===1?[2,6]:diff===2?[3,9]:[4,14];
-    const [dMin,dMax]=dimRanges;
+    const [dMin,dMax]=diff===1?[2,6]:diff===2?[3,8]:[3,8]; // cap at 8 for readable diagrams
     const type=randInt(1,3);
     let qText='',qAsk='',unit='cm',svg='';
 
     if(type===1){
       const l=randInt(dMin,dMax),w=randInt(dMin,dMax),h=randInt(dMin,dMax);
-      const vol=l*w*h;
-      ans=h;
-      svg=cuboidSVG(l,w,h,'h');
-      qText=`A cuboid has a volume of <strong style="color:#f59e0b">${vol} cm³</strong>.<br>Its length is ${l} cm and width is ${w} cm.`;
+      ans=h;svg=cuboidSVG(l,w,h,'h');
+      qText=`A cuboid has a volume of <strong style="color:#f59e0b">${l*w*h} cm³</strong>.<br>Its length is ${l} cm and width is ${w} cm.`;
       qAsk='Find its height.';unit='cm';
     } else if(type===2){
-      const cubeEdges=[1,2,3,4,5,6];
-      const e=cubeEdges[randInt(0,cubeEdges.length-1)];
-      const vol=e*e*e;
+      const edges=[1,2,3,4,5,6];
+      const e=edges[randInt(0,edges.length-1)];
       ans=e;
-      svg=`<svg width="160" height="140" viewBox="0 0 160 140">
-        <polygon points="30,100 100,100 100,40 30,40" fill="rgba(16,185,129,.1)" stroke="#10b981" stroke-width="2"/>
-        <polygon points="100,100 130,70 130,10 100,40" fill="rgba(16,185,129,.08)" stroke="#10b981" stroke-width="2"/>
-        <polygon points="30,40 100,40 130,10 60,10" fill="rgba(16,185,129,.12)" stroke="#10b981" stroke-width="2"/>
-        <text x="60" y="118" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="900">?</text>
+      svg=`<svg width="180" height="160" viewBox="0 0 180 160">
+        <polygon points="28,112 108,112 108,42  28,42"  fill="rgba(16,185,129,.13)" stroke="#10b981" stroke-width="2"/>
+        <polygon points="108,112 138,80  138,10 108,42" fill="rgba(16,185,129,.07)" stroke="#10b981" stroke-width="2"/>
+        <polygon points="28,42  108,42  138,10 58,10"   fill="rgba(16,185,129,.18)" stroke="#10b981" stroke-width="2"/>
+        <text x="68" y="130" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="900">? cm</text>
       </svg>`;
-      qText=`A cube has a volume of <strong style="color:#f59e0b">${vol} cm³</strong>.`;
+      qText=`A cube has a volume of <strong style="color:#f59e0b">${e*e*e} cm³</strong>.`;
       qAsk='Find the length of one edge.';unit='cm';
     } else {
-      const base=randInt(dMin*dMin,dMax*dMax);
+      const base=randInt(dMin*dMin,Math.min(dMax*dMax,36));
       const h=randInt(dMin,dMax);
-      const vol=base*h;
       ans=base;
-      qText=`A cuboid has a volume of <strong style="color:#f59e0b">${vol} cm³</strong>.<br>Its height is ${h} cm.`;
+      qText=`A cuboid has a volume of <strong style="color:#f59e0b">${base*h} cm³</strong>.<br>Its height is ${h} cm.`;
       qAsk='Find the base area (length × width).';unit='cm²';
     }
     document.getElementById('qText').innerHTML=qText;
@@ -259,39 +357,34 @@ function genQ(){
     let svg='',qText='',qAsk='';
 
     if(type===1){
-      const a=randInt(20,70),b=randInt(20,70);
-      if(a+b>=170){genQ();return}
-      ans=180-a-b;
-      svg=straightLineSVG(a,b);
+      // Straight line: x + k1 + k2 = 180
+      let k1,k2;
+      do{k1=randInt(20,70);k2=randInt(20,70);}while(k1+k2>=165);
+      ans=180-k1-k2;
+      svg=straightLineSVG(k1,k2);
       qText='Angles on a straight line add up to 180°.';
       qAsk='Find angle x.';
     } else if(type===2){
-      const a=randInt(30,70),b=randInt(30,80);
-      if(a+b>=170){genQ();return}
+      // Triangle: x + a + b = 180
+      let a,b;
+      do{a=randInt(30,70);b=randInt(30,75);}while(a+b>=168);
       ans=180-a-b;
       svg=triangleSVG(a,b);
       qText='Angles in a triangle add up to 180°.';
       qAsk='Find angle x at the top of the triangle.';
     } else if(type===3){
-      const known=randInt(30,150);
+      // Vertically opposite
+      const known=randInt(25,155);
       ans=known;
       svg=vertOppSVG(known);
       qText='Vertically opposite angles are equal.';
       qAsk='Find angle x.';
     } else {
-      const a=randInt(60,120),b=randInt(60,120),c=randInt(30,80);
-      if(a+b+c>=350){genQ();return}
+      // Angles at a point: a + b + c + x = 360
+      let a,b,c;
+      do{a=randInt(55,110);b=randInt(55,110);c=randInt(25,75);}while(a+b+c>=348||a+b+c<=200);
       ans=360-a-b-c;
-      svg=`<svg width="200" height="200" viewBox="0 0 200 200">
-        <line x1="100" y1="100" x2="170" y2="30" stroke="#06b6d4" stroke-width="2.5"/>
-        <line x1="100" y1="100" x2="30" y2="50" stroke="#06b6d4" stroke-width="2.5"/>
-        <line x1="100" y1="100" x2="40" y2="160" stroke="#06b6d4" stroke-width="2.5"/>
-        <line x1="100" y1="100" x2="175" y2="155" stroke="#06b6d4" stroke-width="2.5"/>
-        <text x="138" y="65" fill="#94a3b8" font-family="Nunito" font-size="12" font-weight="800">${a}°</text>
-        <text x="58" y="68" fill="#94a3b8" font-family="Nunito" font-size="12" font-weight="800">${b}°</text>
-        <text x="55" y="140" fill="#94a3b8" font-family="Nunito" font-size="12" font-weight="800">${c}°</text>
-        <text x="138" y="148" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="900">x°</text>
-      </svg>`;
+      svg=atPointSVG(a,b,c);
       qText='Angles at a point add up to 360°.';
       qAsk='Find angle x.';
     }
@@ -313,8 +406,7 @@ function checkAnswer(){
   document.getElementById('submitBtn').style.display='none';
   document.getElementById('nextBtn').style.display='block';
   if(correct){
-    streak++;
-    let pts=diff===1?10:diff===2?15:20;let bonus='';
+    streak++;let pts=diff===1?10:diff===2?15:20;let bonus='';
     if(streak===3){pts+=5;bonus='🔥 3 in a row! +5 bonus'}
     else if(streak===5){pts+=10;bonus='🔥 5 in a row! +10 bonus'}
     else if(streak>5&&streak%5===0){pts+=15;bonus=`🔥 ${streak} streak! +15 bonus`}
