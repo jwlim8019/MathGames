@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>P6 · Average of a Data Set</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.container{width:100%;max-width:480px}
+.screen{display:none}.screen.active{display:block}
+.game-badge{display:inline-block;background:#f59e0b;color:#1c0d00;font-weight:800;font-size:11px;letter-spacing:1px;padding:4px 12px;border-radius:20px;margin-bottom:12px;text-transform:uppercase}
+.game-title{font-size:26px;font-weight:900;line-height:1.2;margin-bottom:8px;text-align:center}
+.game-subtitle{font-size:14px;color:#94a3b8;text-align:center;margin-bottom:20px}
+.game-header{text-align:center;margin-bottom:24px}
+.best-box{background:#1e293b;border-radius:12px;padding:12px;text-align:center;margin-bottom:20px;font-size:14px;color:#94a3b8}
+.best-box span{color:#f59e0b;font-weight:800}
+.diff-label{font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center}
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.diff-btn{background:#1e293b;border:2px solid #334155;border-radius:12px;padding:14px 8px;cursor:pointer;transition:all .2s;text-align:center}
+.diff-btn.selected{border-color:#f59e0b;background:rgba(245,158,11,.1)}
+.diff-btn .dn{font-size:14px;font-weight:800;display:block;margin-bottom:3px}
+.diff-btn .dd{font-size:11px;color:#94a3b8;line-height:1.3}
+.start-btn,.play-again-btn{width:100%;background:#f59e0b;color:#1c0d00;border:none;border-radius:12px;padding:15px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s}
+.start-btn:active,.play-again-btn:active{transform:scale(.98);background:#d97706}
+.game-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.score-box,.streak-box{background:#1e293b;border-radius:10px;padding:8px 12px;text-align:center;min-width:64px}
+.box-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px}
+.box-val{font-size:20px;font-weight:900;color:#f59e0b}
+.streak-box .box-val{color:#f59e0b}
+.prog-wrap{flex:1;margin:0 10px}
+.prog-info{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px}
+.prog-bar{background:#1e293b;border-radius:6px;height:8px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#f43f5e);border-radius:6px;transition:width .4s ease}
+.milestone{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:#f59e0b;text-align:center;margin-bottom:10px}
+.q-type-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.5px;margin-bottom:10px}
+.badge-find{background:rgba(245,158,11,.15);color:#f59e0b}
+.badge-missing{background:rgba(56,189,248,.15);color:#38bdf8}
+.q-card{background:#1e293b;border-radius:16px;padding:22px;margin:10px 0;text-align:center}
+.q-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.data-set{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0}
+.data-num{background:#0f172a;border:2px solid #334155;border-radius:10px;padding:8px 14px;font-size:20px;font-weight:900;color:#f1f5f9;min-width:48px;text-align:center}
+.data-num.unknown{border-color:#38bdf8;color:#38bdf8;font-size:18px}
+.q-text{font-size:17px;font-weight:700;line-height:1.7;color:#e2e8f0}
+.q-ask{font-size:20px;font-weight:900;color:#f59e0b;margin-top:10px}
+.ans-area{background:#1e293b;border-radius:16px;padding:18px;margin-bottom:10px}
+.ans-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;text-align:center}
+.num-input{display:flex;align-items:center;justify-content:center;gap:8px}
+.num-input input{width:130px;height:58px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:26px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
+.num-input input:focus{border-color:#f59e0b}
+.num-input .unit{font-size:16px;font-weight:700;color:#64748b}
+.submit-btn{width:100%;background:#f59e0b;color:#1c0d00;border:none;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;transition:all .2s}
+.submit-btn:active{transform:scale(.98);background:#d97706}
+.feedback{border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:14px;font-weight:700;text-align:center;display:none}
+.feedback.ok{background:rgba(16,185,129,.12);border:2px solid #10b981;color:#10b981}
+.feedback.no{background:rgba(148,163,184,.08);border:2px solid #334155;color:#94a3b8}
+.next-btn{width:100%;background:#1e293b;color:#f1f5f9;border:2px solid #334155;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:none;transition:all .2s}
+.next-btn:active{transform:scale(.98)}
+.bonus-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:#f59e0b;color:#0f172a;font-size:20px;font-weight:900;padding:14px 28px;border-radius:18px;z-index:999;opacity:0;transition:all .3s;pointer-events:none}
+.bonus-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.end-card{background:#1e293b;border-radius:20px;padding:32px 24px;text-align:center}
+.end-emoji{font-size:54px;margin-bottom:10px}
+.end-title{font-size:22px;font-weight:900;margin-bottom:6px}
+.end-score{font-size:54px;font-weight:900;color:#f59e0b;margin:14px 0}
+.end-best{font-size:14px;color:#94a3b8;margin-bottom:22px}
+.end-best span{color:#f59e0b;font-weight:800}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="bonus-toast" id="bonusToast"></div>
+
+<div class="screen active" id="startScreen">
+  <div class="game-header">
+    <div class="game-badge">Primary 6 · LO 6.18</div>
+    <h1 class="game-title">Average of<br>a Data Set</h1>
+    <p class="game-subtitle">Find the average, or find the missing value given the average</p>
+  </div>
+  <div class="best-box">🏆 Personal Best: <span id="bestDisplay">—</span></div>
+  <div class="diff-label">Choose Difficulty</div>
+  <div class="diff-grid">
+    <div class="diff-btn selected" data-d="1" onclick="selDiff(1)">
+      <span class="dn">Easy</span>
+      <span class="dd">Find the average of 3–5 numbers</span>
+    </div>
+    <div class="diff-btn" data-d="2" onclick="selDiff(2)">
+      <span class="dn">Medium</span>
+      <span class="dd">Mix of find-average and missing-value</span>
+    </div>
+    <div class="diff-btn" data-d="3" onclick="selDiff(3)">
+      <span class="dn">Hard</span>
+      <span class="dd">Find missing value; larger numbers</span>
+    </div>
+  </div>
+  <button class="start-btn" onclick="startGame()">Start Game →</button>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="game-top">
+    <div class="score-box"><div class="box-label">Score</div><div class="box-val" id="scoreDisplay">0</div></div>
+    <div class="prog-wrap">
+      <div class="prog-info"><span id="progText">Q 1 of 10</span><span id="goalText">Goal: 50 pts</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="streak-box"><div class="box-label">Streak</div><div class="box-val" id="streakDisplay">0</div></div>
+  </div>
+  <div class="milestone" id="milestone">Reach 50 points to unlock the next level! 🎯</div>
+  <div class="q-card">
+    <div class="q-label">Solve this</div>
+    <div id="qTypeBadge" class="q-type-badge badge-find">Find the Average</div>
+    <div class="data-set" id="dataSet"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-ask" id="qAsk"></div>
+  </div>
+  <div class="ans-area">
+    <div class="ans-label">Your Answer</div>
+    <div class="num-input">
+      <input type="number" id="ansIn" min="0" placeholder="?" inputmode="numeric">
+      <span class="unit" id="unitLabel"></span>
+    </div>
+    <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">Check Answer</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQ()">Next Question →</button>
+</div>
+
+<div class="screen" id="endScreen">
+  <div class="end-card">
+    <div class="end-emoji" id="endEmoji">🎉</div>
+    <div class="end-title" id="endTitle">Round Complete!</div>
+    <div class="end-score" id="endScore">0</div>
+    <div class="end-best" id="endBest">Personal Best: <span>—</span></div>
+    <button class="play-again-btn" onclick="goStart()">Play Again</button>
+  </div>
+</div>
+</div>
+
+<script>
+const BKEY='p6_6_18_best';
+let diff=1,score=0,streak=0,qNum=0,ans=0,answered=false;
+
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function loadBest(){const b=localStorage.getItem(BKEY);document.getElementById('bestDisplay').textContent=b?b+' pts':'—'}
+function selDiff(d){diff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.d===d))}
+
+function startGame(){
+  score=0;streak=0;qNum=0;
+  document.getElementById('scoreDisplay').textContent='0';
+  document.getElementById('streakDisplay').textContent='0';
+  const goals=[50,100,150];const g=goals[diff-1];
+  document.getElementById('goalText').textContent=`Goal: ${g} pts`;
+  document.getElementById('milestone').textContent=`Reach ${g} points to unlock the next level! 🎯`;
+  showScreen('gameScreen');genQ();
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+function renderDataSet(nums,unknownIdx){
+  const ds=document.getElementById('dataSet');
+  ds.innerHTML='';
+  nums.forEach((n,i)=>{
+    const div=document.createElement('div');
+    if(i===unknownIdx){
+      div.className='data-num unknown';div.textContent='?';
+    } else {
+      div.className='data-num';div.textContent=n;
+    }
+    ds.appendChild(div);
+  });
+}
+
+function genQ(){
+  answered=false;
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('submitBtn').style.display='block';
+  document.getElementById('ansIn').value='';
+  qNum++;
+  document.getElementById('progText').textContent=`Q ${qNum} of 10`;
+  document.getElementById('progFill').style.width=`${(qNum-1)*10}%`;
+
+  // Determine question type based on difficulty
+  // Easy: always find average
+  // Medium: 50/50 find vs missing
+  // Hard: always missing value
+  const isMissing = diff===1 ? false : diff===3 ? true : Math.random()<0.5;
+
+  // Number of data values
+  const count = diff===1 ? randInt(3,5) : randInt(4,6);
+
+  if(!isMissing){
+    // ── Find the average ──
+    document.getElementById('qTypeBadge').className='q-type-badge badge-find';
+    document.getElementById('qTypeBadge').textContent='Find the Average';
+
+    const maxAvg = diff===1 ? 20 : 50;
+    let avg, nums, tries=0;
+
+    // Generate until we get a valid set that actually averages cleanly
+    do {
+      avg = randInt(5, maxAvg);
+      nums = [];
+      let remaining = avg * count;
+      for(let i=0;i<count-1;i++){
+        const lo = Math.max(1, avg - 10);
+        const hi = avg + 10;
+        const n = randInt(lo, hi);
+        nums.push(n);
+        remaining -= n;
+      }
+      nums.push(remaining);
+      tries++;
+    } while((nums[nums.length-1] < 1 || nums[nums.length-1] > avg*2) && tries < 50);
+
+    if(nums[nums.length-1] < 1){genQ();return}
+
+    // Shuffle so the last-generated value isn't always at the end
+    nums.sort(()=>Math.random()-.5);
+    ans = avg;
+
+    renderDataSet(nums, -1); // no unknown slot
+    document.getElementById('qText').textContent='';
+    document.getElementById('qAsk').textContent=`What is the average of these ${count} numbers?`;
+    document.getElementById('unitLabel').textContent='';
+
+  } else {
+    // ── Find the missing value ──
+    document.getElementById('qTypeBadge').className='q-type-badge badge-missing';
+    document.getElementById('qTypeBadge').textContent='Find the Missing Value';
+
+    const maxAvg = diff===3 ? 60 : 30;
+    let avg, nums, missing, tries=0;
+
+    do {
+      avg = randInt(8, maxAvg);
+      const total = avg * count;
+      nums = [];
+      let sum = 0;
+      for(let i=0;i<count-1;i++){
+        const lo = Math.max(1, avg - 8);
+        const hi = avg + 8;
+        const n = randInt(lo, hi);
+        nums.push(n);
+        sum += n;
+      }
+      missing = total - sum;
+      tries++;
+    } while((missing < 1 || missing > 150) && tries < 50);
+
+    if(missing < 1 || missing > 150){genQ();return}
+
+    ans = missing;
+
+    // Place the unknown at a random position
+    const unknownIdx = randInt(0, count-1);
+    const display = [...nums];
+    display.splice(unknownIdx, 0, 0); // placeholder
+
+    renderDataSet(display, unknownIdx);
+    document.getElementById('qText').innerHTML=`The average of these <strong style="color:#f59e0b">${count}</strong> numbers is <strong style="color:#f59e0b">${avg}</strong>.`;
+    document.getElementById('qAsk').textContent='What is the missing number?';
+    document.getElementById('unitLabel').textContent='';
+  }
+
+  setTimeout(()=>document.getElementById('ansIn').focus(),100);
+}
+
+function checkAnswer(){
+  if(answered)return;
+  const v=parseInt(document.getElementById('ansIn').value);
+  if(isNaN(v)||v<0){showFB('Please enter a number.',false);return}
+  const correct=v===ans;
+  answered=true;
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('nextBtn').style.display='block';
+  if(correct){
+    streak++;
+    let pts=diff===1?10:diff===2?15:20;let bonus='';
+    if(streak===3){pts+=5;bonus='🔥 3 in a row! +5 bonus'}
+    else if(streak===5){pts+=10;bonus='🔥 5 in a row! +10 bonus'}
+    else if(streak>5&&streak%5===0){pts+=15;bonus=`🔥 ${streak} streak! +15 bonus`}
+    if(Math.random()<0.1&&!bonus){pts*=2;bonus='⭐ Lucky spin! 2× points'}
+    score+=pts;document.getElementById('scoreDisplay').textContent=score;document.getElementById('streakDisplay').textContent=streak;
+    if(bonus)showToast(bonus);
+    const msgs=['Excellent! ✓','Correct! ✓','Well done! ✓','Spot on! ✓'];
+    showFB(`${msgs[randInt(0,msgs.length-1)]}  +${pts} pts`,true);
+  } else {
+    streak=0;document.getElementById('streakDisplay').textContent='0';
+    showFB(`Not quite — the answer is ${ans}`,false);
+  }
+}
+
+function showFB(msg,ok){const fb=document.getElementById('feedback');fb.className='feedback '+(ok?'ok':'no');fb.textContent=msg;fb.style.display='block'}
+function showToast(msg){const t=document.getElementById('bonusToast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function nextQ(){if(qNum>=10)endGame();else genQ()}
+function endGame(){
+  document.getElementById('progFill').style.width='100%';
+  const best=parseInt(localStorage.getItem(BKEY)||'0');const nb=score>best;
+  if(nb)localStorage.setItem(BKEY,score);
+  document.getElementById('endScore').textContent=score+' pts';
+  document.getElementById('endEmoji').textContent=score>=150?'🏆':score>=100?'🎉':score>=60?'😊':'💪';
+  document.getElementById('endTitle').textContent=nb?'New Personal Best! 🏆':'Round Complete!';
+  const bv=nb?score:Math.max(best,score);
+  document.getElementById('endBest').innerHTML=`Personal Best: <span>${bv} pts</span>`;
+  showScreen('endScreen');
+}
+function goStart(){loadBest();showScreen('startScreen')}
+loadBest();
+</script>
+</body>
+</html>
