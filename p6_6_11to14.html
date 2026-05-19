@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>P6 · Algebra</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.container{width:100%;max-width:480px}
+.screen{display:none}.screen.active{display:block}
+.game-badge{display:inline-block;background:#a78bfa;color:#1e1b4b;font-weight:800;font-size:11px;letter-spacing:1px;padding:4px 12px;border-radius:20px;margin-bottom:12px;text-transform:uppercase}
+.game-title{font-size:26px;font-weight:900;line-height:1.2;margin-bottom:8px;text-align:center}
+.game-subtitle{font-size:14px;color:#94a3b8;text-align:center;margin-bottom:16px}
+.game-header{text-align:center;margin-bottom:20px}
+.best-box{background:#1e293b;border-radius:12px;padding:12px;text-align:center;margin-bottom:16px;font-size:14px;color:#94a3b8}
+.best-box span{color:#f59e0b;font-weight:800}
+.topic-label{font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;text-align:center}
+.topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.topic-btn{background:#1e293b;border:2px solid #334155;border-radius:12px;padding:12px 8px;cursor:pointer;transition:all .2s;text-align:center}
+.topic-btn.selected{border-color:#a78bfa;background:rgba(167,139,250,.1)}
+.topic-btn .tn{font-size:13px;font-weight:800;display:block;margin-bottom:3px}
+.topic-btn .td{font-size:10px;color:#94a3b8;line-height:1.3}
+.diff-label{font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;text-align:center}
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.diff-btn{background:#1e293b;border:2px solid #334155;border-radius:12px;padding:12px 6px;cursor:pointer;transition:all .2s;text-align:center}
+.diff-btn.selected{border-color:#a78bfa;background:rgba(167,139,250,.1)}
+.diff-btn .dn{font-size:13px;font-weight:800;display:block;margin-bottom:2px}
+.diff-btn .dd{font-size:10px;color:#94a3b8;line-height:1.2}
+.start-btn,.play-again-btn{width:100%;background:#a78bfa;color:#1e1b4b;border:none;border-radius:12px;padding:15px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s}
+.start-btn:active,.play-again-btn:active{transform:scale(.98);background:#8b5cf6}
+.game-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.score-box,.streak-box{background:#1e293b;border-radius:10px;padding:8px 12px;text-align:center;min-width:64px}
+.box-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px}
+.box-val{font-size:20px;font-weight:900;color:#a78bfa}
+.streak-box .box-val{color:#f59e0b}
+.prog-wrap{flex:1;margin:0 10px}
+.prog-info{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px}
+.prog-bar{background:#1e293b;border-radius:6px;height:8px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#a78bfa,#f59e0b);border-radius:6px;transition:width .4s ease}
+.milestone{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:#f59e0b;text-align:center;margin-bottom:10px}
+.topic-tag{display:inline-block;background:rgba(167,139,250,.15);color:#a78bfa;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.q-card{background:#1e293b;border-radius:16px;padding:22px;margin:6px 0;text-align:center;min-height:120px;display:flex;flex-direction:column;justify-content:center}
+.q-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.q-text{font-size:20px;font-weight:800;line-height:1.7;color:#e2e8f0}
+.expr{color:#a78bfa;font-style:italic}
+.q-ask{font-size:18px;font-weight:900;color:#06b6d4;margin-top:10px}
+/* Options for tap-to-select */
+.options-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+.opt-btn{background:#1e293b;border:2px solid #334155;border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .2s;text-align:left;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:#f1f5f9;line-height:1.4}
+.opt-btn:active{transform:scale(.98)}
+.opt-btn.selected{border-color:#a78bfa;background:rgba(167,139,250,.1)}
+.opt-btn.correct{border-color:#10b981;background:rgba(16,185,129,.15);color:#10b981}
+.opt-btn.wrong{border-color:#475569;background:rgba(71,85,105,.1);color:#64748b}
+/* Number input */
+.ans-area{background:#1e293b;border-radius:16px;padding:16px;margin-bottom:10px}
+.ans-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;text-align:center}
+.num-input{display:flex;align-items:center;justify-content:center;gap:8px}
+.num-input input{width:120px;height:58px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:26px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
+.num-input input:focus{border-color:#a78bfa}
+/* Simplify input: coeff + var + optional constant */
+.simplify-input{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.simplify-input input{width:64px;height:52px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
+.simplify-input input:focus{border-color:#a78bfa}
+.simplify-input .part-label{font-size:20px;font-weight:900;color:#a78bfa}
+.simplify-input .op-label{font-size:20px;font-weight:900;color:#64748b}
+.submit-btn{width:100%;background:#a78bfa;color:#1e1b4b;border:none;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;transition:all .2s}
+.submit-btn:active{transform:scale(.98);background:#8b5cf6}
+.submit-btn:disabled{background:#334155;color:#64748b;cursor:not-allowed}
+.feedback{border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:14px;font-weight:700;text-align:center;display:none}
+.feedback.ok{background:rgba(16,185,129,.12);border:2px solid #10b981;color:#10b981}
+.feedback.no{background:rgba(148,163,184,.08);border:2px solid #334155;color:#94a3b8}
+.next-btn{width:100%;background:#1e293b;color:#f1f5f9;border:2px solid #334155;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:none;transition:all .2s}
+.next-btn:active{transform:scale(.98)}
+.bonus-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:#f59e0b;color:#0f172a;font-size:20px;font-weight:900;padding:14px 28px;border-radius:18px;z-index:999;opacity:0;transition:all .3s;pointer-events:none}
+.bonus-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.end-card{background:#1e293b;border-radius:20px;padding:32px 24px;text-align:center}
+.end-emoji{font-size:54px;margin-bottom:10px}
+.end-title{font-size:22px;font-weight:900;margin-bottom:6px}
+.end-score{font-size:54px;font-weight:900;color:#a78bfa;margin:14px 0}
+.end-best{font-size:14px;color:#94a3b8;margin-bottom:22px}
+.end-best span{color:#f59e0b;font-weight:800}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="bonus-toast" id="bonusToast"></div>
+
+<div class="screen active" id="startScreen">
+  <div class="game-header">
+    <div class="game-badge">Primary 6 · LO 6.11 – 6.14</div>
+    <h1 class="game-title">Algebra</h1>
+    <p class="game-subtitle">Expressions, simplification, substitution and equations</p>
+  </div>
+  <div class="best-box">🏆 Personal Best: <span id="bestDisplay">—</span></div>
+  <div class="topic-label">Choose a Topic</div>
+  <div class="topic-grid">
+    <div class="topic-btn selected" data-t="interpret" onclick="selTopic('interpret')"><span class="tn">Interpret Expressions</span><span class="td">Match expression to its meaning</span></div>
+    <div class="topic-btn" data-t="simplify" onclick="selTopic('simplify')"><span class="tn">Simplify Expressions</span><span class="td">Collect like terms</span></div>
+    <div class="topic-btn" data-t="substitute" onclick="selTopic('substitute')"><span class="tn">Substitution</span><span class="td">Evaluate when n = ?</span></div>
+    <div class="topic-btn" data-t="equations" onclick="selTopic('equations')"><span class="tn">Solve Equations</span><span class="td">Find the unknown</span></div>
+  </div>
+  <div class="diff-label">Choose Difficulty</div>
+  <div class="diff-grid">
+    <div class="diff-btn selected" data-d="1" onclick="selDiff(1)"><span class="dn">Easy</span><span class="dd">Simple expressions</span></div>
+    <div class="diff-btn" data-d="2" onclick="selDiff(2)"><span class="dn">Medium</span><span class="dd">Two terms</span></div>
+    <div class="diff-btn" data-d="3" onclick="selDiff(3)"><span class="dn">Hard</span><span class="dd">Multi-step</span></div>
+  </div>
+  <button class="start-btn" onclick="startGame()">Start Game →</button>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="game-top">
+    <div class="score-box"><div class="box-label">Score</div><div class="box-val" id="scoreDisplay">0</div></div>
+    <div class="prog-wrap">
+      <div class="prog-info"><span id="progText">Q 1 of 10</span><span id="goalText">Goal: 50 pts</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="streak-box"><div class="box-label">Streak</div><div class="box-val" id="streakDisplay">0</div></div>
+  </div>
+  <div class="milestone" id="milestone">Reach 50 points to unlock the next level! 🎯</div>
+  <div class="q-card">
+    <div class="topic-tag" id="topicTag">Interpret</div>
+    <div class="q-label" id="qLabel">What does this expression mean?</div>
+    <div class="q-text" id="qText"></div>
+  </div>
+  <div id="optArea"></div>
+  <div class="ans-area" id="ansArea" style="display:none">
+    <div class="ans-label" id="ansLabel">Your Answer</div>
+    <div id="ansInput"></div>
+    <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">Check Answer</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQ()">Next Question →</button>
+</div>
+
+<div class="screen" id="endScreen">
+  <div class="end-card">
+    <div class="end-emoji" id="endEmoji">🎉</div>
+    <div class="end-title" id="endTitle">Round Complete!</div>
+    <div class="end-score" id="endScore">0</div>
+    <div class="end-best" id="endBest">Personal Best: <span>—</span></div>
+    <button class="play-again-btn" onclick="goStart()">Play Again</button>
+  </div>
+</div>
+</div>
+
+<script>
+const BKEY='p6_algebra_best';
+let diff=1,topic='interpret',score=0,streak=0,qNum=0,answered=false;
+let correctIdx=-1,selectedIdx=-1,ansN=0,ansCoeff=0,ansConst=0,hasConst=false;
+
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+function loadBest(){const b=localStorage.getItem(BKEY);document.getElementById('bestDisplay').textContent=b?b+' pts':'—'}
+function selDiff(d){diff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.d===d))}
+function selTopic(t){topic=t;document.querySelectorAll('.topic-btn').forEach(b=>b.classList.toggle('selected',b.dataset.t===t))}
+
+function startGame(){
+  score=0;streak=0;qNum=0;
+  document.getElementById('scoreDisplay').textContent='0';
+  document.getElementById('streakDisplay').textContent='0';
+  const goals=[50,100,150];const g=goals[diff-1];
+  document.getElementById('goalText').textContent=`Goal: ${g} pts`;
+  document.getElementById('milestone').textContent=`Reach ${g} points to unlock the next level! 🎯`;
+  showScreen('gameScreen');genQ();
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+function showMCQ(qHTML,options,correct){
+  document.getElementById('qText').innerHTML=qHTML;
+  document.getElementById('optArea').innerHTML='';
+  document.getElementById('ansArea').style.display='none';
+  const grid=document.createElement('div');grid.className='options-grid';
+  const shuffled=shuffle(options.map((o,i)=>({text:o,orig:i})));
+  correctIdx=shuffled.findIndex(x=>x.orig===correct);
+  shuffled.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';btn.innerHTML=o.text;
+    btn.onclick=()=>{if(!answered)selOpt(i,grid)};
+    grid.appendChild(btn);
+  });
+  document.getElementById('optArea').appendChild(grid);
+  // submit button inline
+  const sub=document.createElement('button');
+  sub.className='submit-btn';sub.id='submitBtn';sub.textContent='Select an answer first';
+  sub.disabled=true;sub.onclick=checkAnswer;
+  sub.style.marginBottom='10px';
+  document.getElementById('optArea').appendChild(sub);
+}
+
+function showNumInput(qHTML,unit=''){
+  document.getElementById('qText').innerHTML=qHTML;
+  document.getElementById('optArea').innerHTML='';
+  document.getElementById('ansArea').style.display='block';
+  document.getElementById('ansInput').innerHTML=`<div class="num-input"><input type="number" id="inN" placeholder="?" inputmode="numeric"><span style="font-size:16px;color:#64748b;font-weight:700">${unit}</span></div>`;
+  document.getElementById('submitBtn').disabled=false;
+  document.getElementById('submitBtn').textContent='Check Answer';
+  setTimeout(()=>document.getElementById('inN').focus(),100);
+}
+
+function showSimplifyInput(qHTML,hasC){
+  document.getElementById('qText').innerHTML=qHTML;
+  document.getElementById('optArea').innerHTML='';
+  document.getElementById('ansArea').style.display='block';
+  hasConst=hasC;
+  const varName='n';
+  let html=`<div class="simplify-input"><input type="number" id="inCoeff" placeholder="?" inputmode="numeric"><span class="part-label">${varName}</span>`;
+  if(hasC){html+=`<span class="op-label">+</span><input type="number" id="inConst" placeholder="?" inputmode="numeric">`}
+  html+='</div>';
+  document.getElementById('ansInput').innerHTML=html;
+  document.getElementById('ansLabel').textContent=`Express as ?n${hasC?' + ?':''}`;
+  document.getElementById('submitBtn').disabled=false;
+  document.getElementById('submitBtn').textContent='Check Answer';
+  setTimeout(()=>document.getElementById('inCoeff').focus(),100);
+}
+
+function selOpt(i,grid){
+  if(answered)return;
+  selectedIdx=i;
+  grid.querySelectorAll('.opt-btn').forEach((b,j)=>b.classList.toggle('selected',j===i));
+  const sub=document.getElementById('submitBtn');
+  sub.disabled=false;sub.textContent='Check Answer';
+}
+
+function genQ(){
+  answered=false;selectedIdx=-1;correctIdx=-1;
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  qNum++;
+  document.getElementById('progText').textContent=`Q ${qNum} of 10`;
+  document.getElementById('progFill').style.width=`${(qNum-1)*10}%`;
+
+  const vars=['n','m','k','p'];
+  const v=vars[0]; // use n throughout for consistency
+
+  if(topic==='interpret'){
+    document.getElementById('topicTag').textContent='Interpret';
+    document.getElementById('qLabel').textContent='What does this expression mean?';
+    const c=randInt(2,9);
+    const k=randInt(1,10);
+    const type=randInt(1,diff<=1?2:3);
+    let expr='',correct=0,opts=[];
+    if(type===1){
+      expr=`<span class="expr">${c}${v}</span>`;
+      opts=[`${c} more than ${v}`,`${v} more than ${c}`,`${c} multiplied by ${v}`,`${v} divided by ${c}`];
+      correct=2;
+    } else if(type===2){
+      expr=`<span class="expr">${v} + ${k}</span>`;
+      opts=[`${k} times ${v}`,`${k} more than ${v}`,`${v} less than ${k}`,`${v} divided by ${k}`];
+      correct=1;
+    } else {
+      expr=`<span class="expr">${c}${v} + ${k}</span>`;
+      opts=[`${c} times ${v}, then add ${k}`,`${c} plus ${v} times ${k}`,`${c} more than ${v}, then times ${k}`,`${k} times ${v}, then add ${c}`];
+      correct=0;
+    }
+    showMCQ(`What does <strong>${expr}</strong> mean?`,opts,correct);
+
+  } else if(topic==='simplify'){
+    document.getElementById('topicTag').textContent='Simplify';
+    document.getElementById('qLabel').textContent='Simplify by collecting like terms.';
+    const a=randInt(1,6),b=randInt(1,6);
+    const hasC2=diff>=2;
+    const k1=randInt(1,8),k2=randInt(1,8);
+    let exprHTML='',resultCoeff=0,resultConst=0;
+    if(!hasC2){
+      // simple: an + bn
+      resultCoeff=a+b;resultConst=0;
+      exprHTML=`Simplify: <span class="expr">${a}${v} + ${b}${v}</span>`;
+    } else if(diff===2){
+      // an + k1 + bn → (a+b)n + k1
+      resultCoeff=a+b;resultConst=k1;
+      exprHTML=`Simplify: <span class="expr">${a}${v} + ${k1} + ${b}${v}</span>`;
+    } else {
+      // an + k1 - bn (or other)
+      const sub2=b<a;
+      resultCoeff=sub2?a-b:a+b;resultConst=k1>k2?k1-k2:k2-k1;
+      const op1=sub2?'−':'+';const op2=k1>k2?'−':'+';
+      exprHTML=`Simplify: <span class="expr">${a}${v} + ${k1} ${op1} ${b}${v} ${op2} ${k2}</span>`;
+    }
+    ansCoeff=resultCoeff;ansConst=resultConst;
+    showSimplifyInput(exprHTML,hasC2);
+
+  } else if(topic==='substitute'){
+    document.getElementById('topicTag').textContent='Substitution';
+    document.getElementById('qLabel').textContent='Evaluate by substituting the value.';
+    const val=randInt(1,10);
+    const c=randInt(1,9),k=randInt(0,diff<=1?0:10);
+    let exprHTML='';
+    if(diff===1){
+      ansN=c*val;
+      exprHTML=`If <span class="expr">${v} = ${val}</span>, find <span class="expr">${c}${v}</span>`;
+    } else if(diff===2){
+      ansN=c*val+k;
+      exprHTML=`If <span class="expr">${v} = ${val}</span>, find <span class="expr">${c}${v} + ${k}</span>`;
+    } else {
+      const d=randInt(1,val>1?val-1:1);
+      ansN=c*val-d;
+      exprHTML=`If <span class="expr">${v} = ${val}</span>, find <span class="expr">${c}${v} − ${d}</span>`;
+    }
+    showNumInput(exprHTML,'');
+
+  } else {
+    document.getElementById('topicTag').textContent='Equations';
+    document.getElementById('qLabel').textContent='Find the value of the unknown.';
+    // ax + b = c style
+    const sol=randInt(1,diff===1?10:diff===2?15:20);
+    const a=randInt(1,diff===1?5:9);
+    const b=diff===1?0:randInt(1,20);
+    const rhs=a*sol+b;
+    ansN=sol;
+    let exprHTML='';
+    if(b===0){
+      exprHTML=`Solve: <span class="expr">${a}${v} = ${rhs}</span>`;
+    } else {
+      exprHTML=`Solve: <span class="expr">${a}${v} + ${b} = ${rhs}</span>`;
+    }
+    showNumInput(exprHTML,'');
+  }
+}
+
+function checkAnswer(){
+  if(answered)return;
+  let correct=false,correctStr='';
+  if(topic==='interpret'){
+    if(selectedIdx<0){showFB('Please select an answer.',false);return}
+    correct=selectedIdx===correctIdx;
+    const btns=document.querySelectorAll('.opt-btn');
+    btns.forEach((b,i)=>{if(i===correctIdx)b.classList.add('correct');else if(i===selectedIdx)b.classList.add('wrong')});
+    correctStr=document.querySelectorAll('.opt-btn')[correctIdx]?.textContent||'';
+  } else if(topic==='simplify'){
+    const vc=parseInt(document.getElementById('inCoeff').value);
+    const vk=hasConst?(parseInt(document.getElementById('inConst').value)||0):0;
+    if(isNaN(vc)){showFB('Enter the coefficient.',false);return}
+    correct=vc===ansCoeff&&vk===ansConst;
+    correctStr=hasConst?`${ansCoeff}n + ${ansConst}`:`${ansCoeff}n`;
+  } else {
+    const v=parseInt(document.getElementById('inN').value);
+    if(isNaN(v)){showFB('Please enter a number.',false);return}
+    correct=v===ansN;correctStr=`${ansN}`;
+  }
+  answered=true;
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('nextBtn').style.display='block';
+  if(correct){
+    streak++;
+    let pts=diff===1?10:diff===2?15:20;let bonus='';
+    if(streak===3){pts+=5;bonus='🔥 3 in a row! +5 bonus'}
+    else if(streak===5){pts+=10;bonus='🔥 5 in a row! +10 bonus'}
+    else if(streak>5&&streak%5===0){pts+=15;bonus=`🔥 ${streak} streak! +15 bonus`}
+    if(Math.random()<0.1&&!bonus){pts*=2;bonus='⭐ Lucky spin! 2× points'}
+    score+=pts;document.getElementById('scoreDisplay').textContent=score;document.getElementById('streakDisplay').textContent=streak;
+    if(bonus)showToast(bonus);
+    const msgs=['Excellent! ✓','Correct! ✓','Well done! ✓','Spot on! ✓'];
+    showFB(`${msgs[randInt(0,msgs.length-1)]}  +${pts} pts`,true);
+  } else {
+    streak=0;document.getElementById('streakDisplay').textContent='0';
+    showFB(`Not quite — the answer is ${correctStr}`,false);
+  }
+}
+
+function showFB(msg,ok){const fb=document.getElementById('feedback');fb.className='feedback '+(ok?'ok':'no');fb.textContent=msg;fb.style.display='block'}
+function showToast(msg){const t=document.getElementById('bonusToast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function nextQ(){if(qNum>=10)endGame();else genQ()}
+function endGame(){
+  document.getElementById('progFill').style.width='100%';
+  const best=parseInt(localStorage.getItem(BKEY)||'0');const nb=score>best;
+  if(nb)localStorage.setItem(BKEY,score);
+  document.getElementById('endScore').textContent=score+' pts';
+  document.getElementById('endEmoji').textContent=score>=150?'🏆':score>=100?'🎉':score>=60?'😊':'💪';
+  document.getElementById('endTitle').textContent=nb?'New Personal Best! 🏆':'Round Complete!';
+  const bv=nb?score:Math.max(best,score);
+  document.getElementById('endBest').innerHTML=`Personal Best: <span>${bv} pts</span>`;
+  showScreen('endScreen');
+}
+function goStart(){loadBest();showScreen('startScreen')}
+loadBest();
+</script>
+</body>
+</html>

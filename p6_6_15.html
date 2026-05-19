@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>P6 · Circles — Area & Circumference</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.container{width:100%;max-width:480px}
+.screen{display:none}.screen.active{display:block}
+.game-badge{display:inline-block;background:#06b6d4;color:#0f172a;font-weight:800;font-size:11px;letter-spacing:1px;padding:4px 12px;border-radius:20px;margin-bottom:12px;text-transform:uppercase}
+.game-title{font-size:26px;font-weight:900;line-height:1.2;margin-bottom:8px;text-align:center}
+.game-subtitle{font-size:14px;color:#94a3b8;text-align:center;margin-bottom:20px}
+.game-header{text-align:center;margin-bottom:24px}
+.best-box{background:#1e293b;border-radius:12px;padding:12px;text-align:center;margin-bottom:20px;font-size:14px;color:#94a3b8}
+.best-box span{color:#f59e0b;font-weight:800}
+.diff-label{font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center}
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.diff-btn{background:#1e293b;border:2px solid #334155;border-radius:12px;padding:14px 8px;cursor:pointer;transition:all .2s;text-align:center}
+.diff-btn.selected{border-color:#06b6d4;background:rgba(6,182,212,.1)}
+.diff-btn .dn{font-size:14px;font-weight:800;display:block;margin-bottom:3px}
+.diff-btn .dd{font-size:11px;color:#94a3b8;line-height:1.3}
+.start-btn,.play-again-btn{width:100%;background:#06b6d4;color:#0f172a;border:none;border-radius:12px;padding:15px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s}
+.start-btn:active,.play-again-btn:active{transform:scale(.98);background:#0891b2}
+.game-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.score-box,.streak-box{background:#1e293b;border-radius:10px;padding:8px 12px;text-align:center;min-width:64px}
+.box-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px}
+.box-val{font-size:20px;font-weight:900;color:#06b6d4}
+.streak-box .box-val{color:#f59e0b}
+.prog-wrap{flex:1;margin:0 10px}
+.prog-info{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px}
+.prog-bar{background:#1e293b;border-radius:6px;height:8px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#06b6d4,#f59e0b);border-radius:6px;transition:width .4s ease}
+.milestone{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:#f59e0b;text-align:center;margin-bottom:10px}
+.q-card{background:#1e293b;border-radius:16px;padding:18px;margin:8px 0;text-align:center}
+.q-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.svg-wrap{display:flex;justify-content:center;margin-bottom:10px}
+.svg-wrap svg{overflow:visible}
+.q-ask{font-size:17px;font-weight:800;color:#06b6d4;margin-top:8px}
+.pi-note{font-size:12px;color:#475569;margin-top:6px}
+.ans-area{background:#1e293b;border-radius:16px;padding:16px;margin-bottom:10px}
+.ans-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;text-align:center}
+.ans-format{font-size:13px;color:#64748b;text-align:center;margin-bottom:10px;font-style:italic}
+/* Two-part pi answer */
+.pi-input{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.pi-input input{width:72px;height:52px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:22px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
+.pi-input input:focus{border-color:#06b6d4}
+.pi-input .pi-sym{font-size:20px;font-weight:900;color:#06b6d4}
+.pi-input .plus-sym{font-size:20px;font-weight:700;color:#64748b}
+.pi-input .unit{font-size:14px;color:#64748b;font-weight:700}
+.single-input{display:flex;justify-content:center}
+.single-input input{width:130px;height:56px;background:#0f172a;border:2px solid #334155;border-radius:10px;color:#f1f5f9;font-family:'Nunito',sans-serif;font-size:26px;font-weight:800;text-align:center;outline:none;transition:border-color .2s}
+.single-input input:focus{border-color:#06b6d4}
+.submit-btn{width:100%;background:#06b6d4;color:#0f172a;border:none;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;transition:all .2s}
+.submit-btn:active{transform:scale(.98);background:#0891b2}
+.feedback{border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:14px;font-weight:700;text-align:center;display:none}
+.feedback.ok{background:rgba(16,185,129,.12);border:2px solid #10b981;color:#10b981}
+.feedback.no{background:rgba(148,163,184,.08);border:2px solid #334155;color:#94a3b8}
+.next-btn{width:100%;background:#1e293b;color:#f1f5f9;border:2px solid #334155;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:none;transition:all .2s}
+.next-btn:active{transform:scale(.98)}
+.bonus-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:#f59e0b;color:#0f172a;font-size:20px;font-weight:900;padding:14px 28px;border-radius:18px;z-index:999;opacity:0;transition:all .3s;pointer-events:none}
+.bonus-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.end-card{background:#1e293b;border-radius:20px;padding:32px 24px;text-align:center}
+.end-emoji{font-size:54px;margin-bottom:10px}
+.end-title{font-size:22px;font-weight:900;margin-bottom:6px}
+.end-score{font-size:54px;font-weight:900;color:#06b6d4;margin:14px 0}
+.end-best{font-size:14px;color:#94a3b8;margin-bottom:22px}
+.end-best span{color:#f59e0b;font-weight:800}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="bonus-toast" id="bonusToast"></div>
+
+<div class="screen active" id="startScreen">
+  <div class="game-header">
+    <div class="game-badge">Primary 6 · LO 6.15</div>
+    <h1 class="game-title">Circles</h1>
+    <p class="game-subtitle">Area and circumference of circles, semicircles and quarter circles</p>
+  </div>
+  <div class="best-box">🏆 Personal Best: <span id="bestDisplay">—</span></div>
+  <div class="diff-label">Choose Difficulty</div>
+  <div class="diff-grid">
+    <div class="diff-btn selected" data-d="1" onclick="selDiff(1)"><span class="dn">Easy</span><span class="dd">Full circles only</span></div>
+    <div class="diff-btn" data-d="2" onclick="selDiff(2)"><span class="dn">Medium</span><span class="dd">Semicircles and quarter circles</span></div>
+    <div class="diff-btn" data-d="3" onclick="selDiff(3)"><span class="dn">Hard</span><span class="dd">Composite figures</span></div>
+  </div>
+  <button class="start-btn" onclick="startGame()">Start Game →</button>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="game-top">
+    <div class="score-box"><div class="box-label">Score</div><div class="box-val" id="scoreDisplay">0</div></div>
+    <div class="prog-wrap">
+      <div class="prog-info"><span id="progText">Q 1 of 10</span><span id="goalText">Goal: 50 pts</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="streak-box"><div class="box-label">Streak</div><div class="box-val" id="streakDisplay">0</div></div>
+  </div>
+  <div class="milestone" id="milestone">Reach 50 points to unlock the next level! 🎯</div>
+  <div class="q-card">
+    <div class="q-label">Find the measurement</div>
+    <div class="svg-wrap" id="svgWrap"></div>
+    <div class="q-ask" id="qAsk"></div>
+    <div class="pi-note">Use π = 3.14. Give your answer in cm² or cm.</div>
+  </div>
+  <div class="ans-area">
+    <div class="ans-label">Your Answer</div>
+    <div class="ans-format" id="ansFormat">e.g. for 9π enter 9, for 9π + 6 enter 9 and 6</div>
+    <div id="ansInput"></div>
+    <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">Check Answer</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQ()">Next Question →</button>
+</div>
+
+<div class="screen" id="endScreen">
+  <div class="end-card">
+    <div class="end-emoji" id="endEmoji">🎉</div>
+    <div class="end-title" id="endTitle">Round Complete!</div>
+    <div class="end-score" id="endScore">0</div>
+    <div class="end-best" id="endBest">Personal Best: <span>—</span></div>
+    <button class="play-again-btn" onclick="goStart()">Play Again</button>
+  </div>
+</div>
+</div>
+
+<script>
+const BKEY='p6_6_15_best';
+let diff=1,score=0,streak=0,qNum=0,answered=false;
+// Answer stored as: piCoeff (×π part) and straight (non-π part)
+let ansPiCoeff=0,ansStraight=0,ansType=''; // ansType: 'area','circ','perimSemi','perimQ'
+
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function loadBest(){const b=localStorage.getItem(BKEY);document.getElementById('bestDisplay').textContent=b?b+' pts':'—'}
+function selDiff(d){diff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.d===d))}
+
+function startGame(){
+  score=0;streak=0;qNum=0;
+  document.getElementById('scoreDisplay').textContent='0';
+  document.getElementById('streakDisplay').textContent='0';
+  const goals=[50,100,150];const g=goals[diff-1];
+  document.getElementById('goalText').textContent=`Goal: ${g} pts`;
+  document.getElementById('milestone').textContent=`Reach ${g} points to unlock the next level! 🎯`;
+  showScreen('gameScreen');genQ();
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+// SVG generators
+function circleSVG(r,label){
+  const cx=100,cy=100,px=Math.min(r*14,90);
+  return`<svg width="200" height="200" viewBox="0 0 200 200">
+    <circle cx="${cx}" cy="${cy}" r="${px}" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2.5"/>
+    <line x1="${cx}" y1="${cy}" x2="${cx+px}" y2="${cy}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3"/>
+    <text x="${cx+px/2}" y="${cy-8}" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="800">${label}</text>
+  </svg>`;
+}
+
+function semicircleSVG(r,label){
+  const cx=100,cy=130,px=Math.min(r*14,80);
+  return`<svg width="200" height="170" viewBox="0 0 200 170">
+    <path d="M ${cx-px} ${cy} A ${px} ${px} 0 0 1 ${cx+px} ${cy} Z" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2.5"/>
+    <line x1="${cx-px}" y1="${cy}" x2="${cx+px}" y2="${cy}" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy-px}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3"/>
+    <text x="${cx+8}" y="${cy-px/2}" fill="#f59e0b" font-family="Nunito" font-size="14" font-weight="800">${label}</text>
+  </svg>`;
+}
+
+function quarterCircleSVG(r,label){
+  const ox=40,oy=150,px=Math.min(r*15,110);
+  return`<svg width="200" height="200" viewBox="0 0 200 200">
+    <path d="M ${ox} ${oy} L ${ox+px} ${oy} A ${px} ${px} 0 0 0 ${ox} ${oy-px} Z" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2.5"/>
+    <line x1="${ox}" y1="${oy}" x2="${ox+px}" y2="${oy}" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy-px}" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="${ox}" y1="${oy}" x2="${ox+px}" y2="${oy-px}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3" opacity="0"/>
+    <text x="${ox+px/2+10}" y="${oy+18}" fill="#f59e0b" font-family="Nunito" font-size="13" font-weight="800">${label}</text>
+  </svg>`;
+}
+
+function genQ(){
+  answered=false;
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('submitBtn').style.display='block';
+  qNum++;
+  document.getElementById('progText').textContent=`Q ${qNum} of 10`;
+  document.getElementById('progFill').style.width=`${(qNum-1)*10}%`;
+
+  const radii=[3,4,5,6,7,10];
+  const r=radii[randInt(0,radii.length-1)];
+
+  if(diff===1){
+    // Full circles: area or circumference
+    const findArea=Math.random()<0.5;
+    if(findArea){
+      // Area = πr², enter r²
+      ansPiCoeff=r*r;ansStraight=0;ansType='area';
+      document.getElementById('svgWrap').innerHTML=circleSVG(r,`r = ${r} cm`);
+      document.getElementById('qAsk').textContent=`Find the area of the circle.`;
+      document.getElementById('ansFormat').textContent=`Area = ? × π cm². Enter the number before π.`;
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">π cm²</span></div>`;
+    } else {
+      // Circumference = 2πr, enter 2r
+      ansPiCoeff=2*r;ansStraight=0;ansType='circ';
+      document.getElementById('svgWrap').innerHTML=circleSVG(r,`r = ${r} cm`);
+      document.getElementById('qAsk').textContent=`Find the circumference of the circle.`;
+      document.getElementById('ansFormat').textContent=`Circumference = ? × π cm. Enter the number before π.`;
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">π cm</span></div>`;
+    }
+  } else if(diff===2){
+    // Semicircles and quarter circles
+    const shape=Math.random()<0.5?'semi':'quarter';
+    const findArea=Math.random()<0.5;
+    if(shape==='semi'){
+      if(findArea){
+        // Area = πr²/2, enter r²/2
+        ansPiCoeff=r*r;ansStraight=0;ansType='area_semi';
+        document.getElementById('svgWrap').innerHTML=semicircleSVG(r,`r = ${r} cm`);
+        document.getElementById('qAsk').textContent=`Find the area of the semicircle.`;
+        document.getElementById('ansFormat').textContent=`Area = ?/2 × π cm². Enter the number before π/2.`;
+        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/2 × π cm²</span></div>`;
+      } else {
+        // Perimeter = πr + 2r = r(π + 2)
+        ansPiCoeff=r;ansStraight=2*r;ansType='perim_semi';
+        document.getElementById('svgWrap').innerHTML=semicircleSVG(r,`r = ${r} cm`);
+        document.getElementById('qAsk').textContent=`Find the perimeter of the semicircle.`;
+        document.getElementById('ansFormat').textContent=`Perimeter = ?π + ? cm. Enter the π part then the straight part.`;
+        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm</span></div>`;
+      }
+    } else {
+      if(findArea){
+        // Area = πr²/4, enter r²
+        ansPiCoeff=r*r;ansStraight=0;ansType='area_quarter';
+        document.getElementById('svgWrap').innerHTML=quarterCircleSVG(r,`r = ${r} cm`);
+        document.getElementById('qAsk').textContent=`Find the area of the quarter circle.`;
+        document.getElementById('ansFormat').textContent=`Area = ?/4 × π cm². Enter the number before π/4.`;
+        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/4 × π cm²</span></div>`;
+      } else {
+        // Perimeter = (πr/2) + 2r
+        ansPiCoeff=r;ansStraight=2*r;ansType='perim_quarter';
+        document.getElementById('svgWrap').innerHTML=quarterCircleSVG(r,`r = ${r} cm`);
+        document.getElementById('qAsk').textContent=`Find the perimeter of the quarter circle.`;
+        document.getElementById('ansFormat').textContent=`Perimeter = ?/2 × π + ? cm.`;
+        document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/2 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm</span></div>`;
+      }
+    }
+  } else {
+    // Hard: composite — square + semicircle or rectangle + quarter circle
+    const sideR=[4,5,6,7,8,10];
+    const side=sideR[randInt(0,sideR.length-1)];
+    const r2=side/2;
+    const findArea=Math.random()<0.5;
+    const shape=Math.random()<0.5?'sq_semi':'rect_q';
+    if(shape==='sq_semi'){
+      // Square with semicircle on top
+      // Area = side² + π(side/2)²/2 = side² + π·side²/8
+      const squareArea=side*side;
+      const piPart=side*side; // in numerator of /8 term — too complex; just use r and keep coefficient
+      // Simplify: Area = side² + π·r²/2 where r = side/2
+      // = side² + π(side/2)²/2
+      ansPiCoeff=r2*r2;ansStraight=squareArea;ansType='composite_sq_semi';
+      document.getElementById('svgWrap').innerHTML=`<svg width="200" height="200" viewBox="0 0 200 200">
+        <rect x="60" y="80" width="80" height="80" fill="rgba(6,182,212,.1)" stroke="#06b6d4" stroke-width="2"/>
+        <path d="M 60 80 A 40 40 0 0 1 140 80" fill="rgba(6,182,212,.15)" stroke="#06b6d4" stroke-width="2"/>
+        <text x="95" y="125" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="13" font-weight="800">${side} cm</text>
+      </svg>`;
+      document.getElementById('qAsk').textContent=`Find the total area of the figure.`;
+      document.getElementById('ansFormat').textContent=`Area = ?/2 × π + ? cm². Enter π-part then square part.`;
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/2 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm²</span></div>`;
+    } else {
+      // Rectangle + quarter circle at corner
+      const w=side,h=side;
+      const r3=randInt(2,4);
+      ansPiCoeff=r3*r3;ansStraight=w*h;ansType='composite_rect_q';
+      document.getElementById('svgWrap').innerHTML=`<svg width="200" height="180" viewBox="0 0 200 180">
+        <rect x="40" y="50" width="100" height="80" fill="rgba(6,182,212,.1)" stroke="#06b6d4" stroke-width="2"/>
+        <path d="M 40 50 A ${r3*12} ${r3*12} 0 0 1 ${40+r3*12} 50 L ${40+r3*12} ${50-r3*12} A ${r3*12} ${r3*12} 0 0 0 40 50 Z" fill="rgba(245,158,11,.15)" stroke="#f59e0b" stroke-width="2"/>
+        <text x="86" y="100" text-anchor="middle" fill="#06b6d4" font-family="Nunito" font-size="12" font-weight="800">${w}×${h}</text>
+        <text x="${40+r3*6}" y="${50+18}" text-anchor="middle" fill="#f59e0b" font-family="Nunito" font-size="11" font-weight="800">r=${r3}</text>
+      </svg>`;
+      document.getElementById('qAsk').textContent=`Find the total area of the figure.`;
+      document.getElementById('ansFormat').textContent=`Area = ?/4 × π + ? cm². Enter π-part (r²) then rectangle area.`;
+      document.getElementById('ansInput').innerHTML=`<div class="pi-input"><input type="number" id="piIn" min="1" placeholder="?" inputmode="numeric"><span class="pi-sym">/4 × π +</span><input type="number" id="stIn" min="1" placeholder="?" inputmode="numeric"><span class="unit">cm²</span></div>`;
+    }
+  }
+  setTimeout(()=>document.getElementById('piIn').focus(),100);
+}
+
+function checkAnswer(){
+  if(answered)return;
+  const pc=parseInt(document.getElementById('piIn').value);
+  const stEl=document.getElementById('stIn');
+  const st=stEl?parseInt(stEl.value)||0:0;
+  if(isNaN(pc)||pc<0){showFB('Enter the coefficient for the π part.',false);return}
+  const correct=pc===ansPiCoeff&&st===ansStraight;
+  answered=true;
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('nextBtn').style.display='block';
+  if(correct){
+    streak++;
+    let pts=diff===1?10:diff===2?15:20;let bonus='';
+    if(streak===3){pts+=5;bonus='🔥 3 in a row! +5 bonus'}
+    else if(streak===5){pts+=10;bonus='🔥 5 in a row! +10 bonus'}
+    else if(streak>5&&streak%5===0){pts+=15;bonus=`🔥 ${streak} streak! +15 bonus`}
+    if(Math.random()<0.1&&!bonus){pts*=2;bonus='⭐ Lucky spin! 2× points'}
+    score+=pts;document.getElementById('scoreDisplay').textContent=score;document.getElementById('streakDisplay').textContent=streak;
+    if(bonus)showToast(bonus);
+    const msgs=['Excellent! ✓','Correct! ✓','Well done! ✓','Spot on! ✓'];
+    showFB(`${msgs[randInt(0,msgs.length-1)]}  +${pts} pts`,true);
+  } else {
+    streak=0;document.getElementById('streakDisplay').textContent='0';
+    const corrStr=ansStraight?`π-coeff = ${ansPiCoeff}, straight part = ${ansStraight}`:`π-coeff = ${ansPiCoeff}`;
+    showFB(`Not quite — ${corrStr}`,false);
+  }
+}
+
+function showFB(msg,ok){const fb=document.getElementById('feedback');fb.className='feedback '+(ok?'ok':'no');fb.textContent=msg;fb.style.display='block'}
+function showToast(msg){const t=document.getElementById('bonusToast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function nextQ(){if(qNum>=10)endGame();else genQ()}
+function endGame(){
+  document.getElementById('progFill').style.width='100%';
+  const best=parseInt(localStorage.getItem(BKEY)||'0');const nb=score>best;
+  if(nb)localStorage.setItem(BKEY,score);
+  document.getElementById('endScore').textContent=score+' pts';
+  document.getElementById('endEmoji').textContent=score>=150?'🏆':score>=100?'🎉':score>=60?'😊':'💪';
+  document.getElementById('endTitle').textContent=nb?'New Personal Best! 🏆':'Round Complete!';
+  const bv=nb?score:Math.max(best,score);
+  document.getElementById('endBest').innerHTML=`Personal Best: <span>${bv} pts</span>`;
+  showScreen('endScreen');
+}
+function goStart(){loadBest();showScreen('startScreen')}
+loadBest();
+</script>
+</body>
+</html>

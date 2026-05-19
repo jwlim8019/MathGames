@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>P6 · Interpret Ratio Notation</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito',sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.container{width:100%;max-width:480px}
+.screen{display:none}.screen.active{display:block}
+.game-badge{display:inline-block;background:#06b6d4;color:#0f172a;font-weight:800;font-size:11px;letter-spacing:1px;padding:4px 12px;border-radius:20px;margin-bottom:12px;text-transform:uppercase}
+.game-title{font-size:26px;font-weight:900;line-height:1.2;margin-bottom:8px;text-align:center}
+.game-subtitle{font-size:14px;color:#94a3b8;text-align:center;margin-bottom:20px}
+.game-header{text-align:center;margin-bottom:24px}
+.best-box{background:#1e293b;border-radius:12px;padding:12px;text-align:center;margin-bottom:20px;font-size:14px;color:#94a3b8}
+.best-box span{color:#f59e0b;font-weight:800}
+.diff-label{font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;text-align:center}
+.diff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.diff-btn{background:#1e293b;border:2px solid #334155;border-radius:12px;padding:14px 8px;cursor:pointer;transition:all .2s;text-align:center}
+.diff-btn.selected{border-color:#06b6d4;background:rgba(6,182,212,.1)}
+.diff-btn .dn{font-size:14px;font-weight:800;display:block;margin-bottom:3px}
+.diff-btn .dd{font-size:11px;color:#94a3b8;line-height:1.3}
+.start-btn,.play-again-btn{width:100%;background:#06b6d4;color:#0f172a;border:none;border-radius:12px;padding:15px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s}
+.start-btn:active,.play-again-btn:active{transform:scale(.98);background:#0891b2}
+.game-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.score-box,.streak-box{background:#1e293b;border-radius:10px;padding:8px 12px;text-align:center;min-width:64px}
+.box-label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px}
+.box-val{font-size:20px;font-weight:900;color:#06b6d4}
+.streak-box .box-val{color:#f59e0b}
+.prog-wrap{flex:1;margin:0 10px}
+.prog-info{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:5px}
+.prog-bar{background:#1e293b;border-radius:6px;height:8px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#06b6d4,#f59e0b);border-radius:6px;transition:width .4s ease}
+.milestone{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:#f59e0b;text-align:center;margin-bottom:10px}
+.q-card{background:#1e293b;border-radius:16px;padding:22px;margin:10px 0}
+.q-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center}
+.q-text{font-size:17px;font-weight:700;line-height:1.7;color:#e2e8f0;text-align:center}
+.q-ask{font-size:15px;font-weight:800;color:#94a3b8;margin-top:12px;text-align:center}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+.opt-btn{background:#1e293b;border:2px solid #334155;border-radius:14px;padding:18px 10px;cursor:pointer;transition:all .2s;text-align:center;font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:#f1f5f9}
+.opt-btn:active{transform:scale(.96)}
+.opt-btn.selected{border-color:#06b6d4;background:rgba(6,182,212,.1)}
+.opt-btn.correct{border-color:#10b981;background:rgba(16,185,129,.15);color:#10b981}
+.opt-btn.wrong{border-color:#475569;background:rgba(71,85,105,.1);color:#64748b}
+.submit-btn{width:100%;background:#06b6d4;color:#0f172a;border:none;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;transition:all .2s}
+.submit-btn:active{transform:scale(.98);background:#0891b2}
+.submit-btn:disabled{background:#334155;color:#64748b;cursor:not-allowed}
+.feedback{border-radius:12px;padding:13px 16px;margin-bottom:10px;font-size:14px;font-weight:700;text-align:center;display:none}
+.feedback.ok{background:rgba(16,185,129,.12);border:2px solid #10b981;color:#10b981}
+.feedback.no{background:rgba(148,163,184,.08);border:2px solid #334155;color:#94a3b8}
+.next-btn{width:100%;background:#1e293b;color:#f1f5f9;border:2px solid #334155;border-radius:12px;padding:13px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:none;transition:all .2s}
+.next-btn:active{transform:scale(.98)}
+.bonus-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:#f59e0b;color:#0f172a;font-size:20px;font-weight:900;padding:14px 28px;border-radius:18px;z-index:999;opacity:0;transition:all .3s;pointer-events:none}
+.bonus-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.end-card{background:#1e293b;border-radius:20px;padding:32px 24px;text-align:center}
+.end-emoji{font-size:54px;margin-bottom:10px}
+.end-title{font-size:22px;font-weight:900;margin-bottom:6px}
+.end-score{font-size:54px;font-weight:900;color:#06b6d4;margin:14px 0}
+.end-best{font-size:14px;color:#94a3b8;margin-bottom:22px}
+.end-best span{color:#f59e0b;font-weight:800}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="bonus-toast" id="bonusToast"></div>
+
+<div class="screen active" id="startScreen">
+  <div class="game-header">
+    <div class="game-badge">Primary 6 · LO 6.5</div>
+    <h1 class="game-title">Interpret Ratio<br>Notation</h1>
+    <p class="game-subtitle">Match ratios to real-world descriptions</p>
+  </div>
+  <div class="best-box">🏆 Personal Best: <span id="bestDisplay">—</span></div>
+  <div class="diff-label">Choose Difficulty</div>
+  <div class="diff-grid">
+    <div class="diff-btn selected" data-d="1" onclick="selDiff(1)"><span class="dn">Easy</span><span class="dd">Two-part ratios a:b</span></div>
+    <div class="diff-btn" data-d="2" onclick="selDiff(2)"><span class="dn">Medium</span><span class="dd">Match description to ratio</span></div>
+    <div class="diff-btn" data-d="3" onclick="selDiff(3)"><span class="dn">Hard</span><span class="dd">Three-part ratios a:b:c</span></div>
+  </div>
+  <button class="start-btn" onclick="startGame()">Start Game →</button>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="game-top">
+    <div class="score-box"><div class="box-label">Score</div><div class="box-val" id="scoreDisplay">0</div></div>
+    <div class="prog-wrap">
+      <div class="prog-info"><span id="progText">Q 1 of 10</span><span id="goalText">Goal: 50 pts</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="streak-box"><div class="box-label">Streak</div><div class="box-val" id="streakDisplay">0</div></div>
+  </div>
+  <div class="milestone" id="milestone">Reach 50 points to unlock the next level! 🎯</div>
+  <div class="q-card">
+    <div class="q-label">Read carefully</div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-ask" id="qAsk">Tap the correct answer below.</div>
+  </div>
+  <div class="options-grid" id="optionsGrid"></div>
+  <button class="submit-btn" id="submitBtn" onclick="checkAnswer()" disabled>Select an answer first</button>
+  <div class="feedback" id="feedback"></div>
+  <button class="next-btn" id="nextBtn" onclick="nextQ()">Next Question →</button>
+</div>
+
+<div class="screen" id="endScreen">
+  <div class="end-card">
+    <div class="end-emoji" id="endEmoji">🎉</div>
+    <div class="end-title" id="endTitle">Round Complete!</div>
+    <div class="end-score" id="endScore">0</div>
+    <div class="end-best" id="endBest">Personal Best: <span>—</span></div>
+    <button class="play-again-btn" onclick="goStart()">Play Again</button>
+  </div>
+</div>
+</div>
+
+<script>
+const BKEY='p6_6_5_best';
+let diff=1,score=0,streak=0,qNum=0,correctIdx=0,selectedIdx=-1,answered=false;
+
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+function loadBest(){const b=localStorage.getItem(BKEY);document.getElementById('bestDisplay').textContent=b?b+' pts':'—'}
+function selDiff(d){diff=d;document.querySelectorAll('.diff-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.d===d))}
+
+function startGame(){
+  score=0;streak=0;qNum=0;
+  document.getElementById('scoreDisplay').textContent='0';
+  document.getElementById('streakDisplay').textContent='0';
+  const goals=[50,100,150];const g=goals[diff-1];
+  document.getElementById('goalText').textContent=`Goal: ${g} pts`;
+  document.getElementById('milestone').textContent=`Reach ${g} points to unlock the next level! 🎯`;
+  showScreen('gameScreen');genQ();
+}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+// Two-part scenarios
+const scenarios2=[
+  (a,b,nA,nB)=>({q:`For every <strong style="color:#f59e0b">${a}</strong> ${nA}, there are <strong style="color:#f59e0b">${b}</strong> ${nB}.`,ask:`Which ratio shows <em>${nA} : ${nB}</em>?`,ans:`${a}:${b}`}),
+  (a,b,nA,nB)=>({q:`There are <strong style="color:#06b6d4">${a}</strong> ${nA} and <strong style="color:#06b6d4">${b}</strong> ${nB}.`,ask:`What is the ratio of ${nA} to ${nB}?`,ans:`${a}:${b}`}),
+  (a,b,nA,nB)=>({q:`The ratio of ${nA} to ${nB} is <strong style="color:#f59e0b">${a} : ${b}</strong>.`,ask:`What does this mean?`,ans:`${a} ${nA} for every ${b} ${nB}`}),
+];
+const nouns=[['boys','girls'],['apples','oranges'],['cats','dogs'],['red marbles','blue marbles'],['books','pens'],['teachers','students']];
+const nouns3=[['boys','girls','teachers'],['red','blue','green'],['small','medium','large']];
+
+function genQ(){
+  answered=false;selectedIdx=-1;
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('submitBtn').style.display='block';
+  document.getElementById('submitBtn').disabled=true;
+  document.getElementById('submitBtn').textContent='Select an answer first';
+  qNum++;
+  document.getElementById('progText').textContent=`Q ${qNum} of 10`;
+  document.getElementById('progFill').style.width=`${(qNum-1)*10}%`;
+
+  let qText='',qAsk='',correctAns='',options=[];
+
+  if(diff<=2){
+    const a=randInt(1,6),b=randInt(1,6);
+    const nouns2=nouns[randInt(0,nouns.length-1)];
+    const [nA,nB]=nouns2;
+    if(diff===1){
+      // Show scenario, pick correct ratio from 4 options
+      qText=`For every <strong style="color:#f59e0b">${a}</strong> ${nA}, there are <strong style="color:#f59e0b">${b}</strong> ${nB}.`;
+      qAsk=`Which ratio shows <em>${nA} : ${nB}</em>?`;
+      correctAns=`${a}:${b}`;
+      // Generate 3 distractors
+      const d1=`${b}:${a}`,d2=`${a}:${a+b}`,d3=`${b}:${a+b}`;
+      options=shuffle([correctAns,d1,d2,d3]);
+    } else {
+      // Show ratio, pick correct description
+      qText=`The ratio of ${nA} to ${nB} is <strong style="color:#f59e0b">${a} : ${b}</strong>.`;
+      qAsk=`What does this tell us?`;
+      correctAns=`${a} ${nA} for every ${b} ${nB}`;
+      options=shuffle([
+        correctAns,
+        `${b} ${nA} for every ${a} ${nB}`,
+        `${a+b} ${nA} for every ${b} ${nB}`,
+        `${a} ${nA} out of ${b} altogether`,
+      ]);
+    }
+  } else {
+    // Three-part ratios
+    const a=randInt(1,5),b=randInt(1,5),c=randInt(1,5);
+    const [nA,nB,nC]=nouns3[randInt(0,nouns3.length-1)];
+    qText=`There are <strong style="color:#f59e0b">${a}</strong> ${nA}, <strong style="color:#06b6d4">${b}</strong> ${nB} and <strong style="color:#10b981">${c}</strong> ${nC}.`;
+    qAsk=`What is the ratio of ${nA} : ${nB} : ${nC}?`;
+    correctAns=`${a}:${b}:${c}`;
+    options=shuffle([
+      correctAns,
+      `${b}:${a}:${c}`,
+      `${a}:${c}:${b}`,
+      `${c}:${b}:${a}`,
+    ]);
+  }
+
+  document.getElementById('qText').innerHTML=qText;
+  document.getElementById('qAsk').textContent=qAsk;
+  correctIdx=options.indexOf(correctAns);
+
+  const grid=document.getElementById('optionsGrid');
+  grid.innerHTML='';
+  options.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    btn.textContent=opt;
+    btn.onclick=()=>{if(!answered)selectOption(i)};
+    grid.appendChild(btn);
+  });
+}
+
+function selectOption(i){
+  if(answered)return;
+  selectedIdx=i;
+  document.querySelectorAll('.opt-btn').forEach((b,idx)=>{
+    b.classList.toggle('selected',idx===i);
+  });
+  document.getElementById('submitBtn').disabled=false;
+  document.getElementById('submitBtn').textContent='Check Answer';
+}
+
+function checkAnswer(){
+  if(answered||selectedIdx<0)return;
+  answered=true;
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('nextBtn').style.display='block';
+  const correct=selectedIdx===correctIdx;
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>{
+    if(i===correctIdx)b.classList.add('correct');
+    else if(i===selectedIdx&&!correct)b.classList.add('wrong');
+  });
+  if(correct){
+    streak++;
+    let pts=diff===1?10:diff===2?15:20;
+    let bonus='';
+    if(streak===3){pts+=5;bonus='🔥 3 in a row! +5 bonus'}
+    else if(streak===5){pts+=10;bonus='🔥 5 in a row! +10 bonus'}
+    else if(streak>5&&streak%5===0){pts+=15;bonus=`🔥 ${streak} streak! +15 bonus`}
+    if(Math.random()<0.1&&!bonus){pts*=2;bonus='⭐ Lucky spin! 2× points'}
+    score+=pts;
+    document.getElementById('scoreDisplay').textContent=score;
+    document.getElementById('streakDisplay').textContent=streak;
+    if(bonus)showToast(bonus);
+    const msgs=['Excellent! ✓','Correct! ✓','Well done! ✓','Spot on! ✓'];
+    showFB(`${msgs[randInt(0,msgs.length-1)]}  +${pts} pts`,true);
+  } else {
+    streak=0;document.getElementById('streakDisplay').textContent='0';
+    const opts=document.querySelectorAll('.opt-btn');
+    showFB(`Not quite — the answer is "${opts[correctIdx].textContent}"`,false);
+  }
+}
+
+function showFB(msg,ok){const fb=document.getElementById('feedback');fb.className='feedback '+(ok?'ok':'no');fb.textContent=msg;fb.style.display='block'}
+function showToast(msg){const t=document.getElementById('bonusToast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function nextQ(){if(qNum>=10)endGame();else genQ()}
+function endGame(){
+  document.getElementById('progFill').style.width='100%';
+  const best=parseInt(localStorage.getItem(BKEY)||'0');const nb=score>best;
+  if(nb)localStorage.setItem(BKEY,score);
+  document.getElementById('endScore').textContent=score+' pts';
+  document.getElementById('endEmoji').textContent=score>=150?'🏆':score>=100?'🎉':score>=60?'😊':'💪';
+  document.getElementById('endTitle').textContent=nb?'New Personal Best! 🏆':'Round Complete!';
+  const bv=nb?score:Math.max(best,score);
+  document.getElementById('endBest').innerHTML=`Personal Best: <span>${bv} pts</span>`;
+  showScreen('endScreen');
+}
+function goStart(){loadBest();showScreen('startScreen')}
+loadBest();
+</script>
+</body>
+</html>
